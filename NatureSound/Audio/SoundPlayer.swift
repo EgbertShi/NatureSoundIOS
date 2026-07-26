@@ -8,48 +8,10 @@
 import AVFoundation
 import SwiftUI
 
-private let renderQueue = DispatchQueue(label: "com.naturevoice.render", qos: .userInitiated)
-
-// MARK: - 流水线 Buffer 缓存
-/// 播放当前 buffer 的同时，后台预渲染下一份，内存占用最小。
-private final class BufferPipeline {
-    static let shared = BufferPipeline()
-    private let lock = NSLock()
-    private var nextBuffer: [String: AVAudioPCMBuffer] = [:]
-    private var rendering: Set<String> = []
-
-    func take(_ soundID: String) -> AVAudioPCMBuffer? {
-        lock.lock(); defer { lock.unlock() }
-        return nextBuffer.removeValue(forKey: soundID)
-    }
-
-    func store(_ soundID: String, buffer: AVAudioPCMBuffer) {
-        lock.lock(); defer { lock.unlock() }
-        nextBuffer[soundID] = buffer
-        rendering.remove(soundID)
-    }
-
-    func markRendering(_ soundID: String) -> Bool {
-        lock.lock(); defer { lock.unlock() }
-        guard !rendering.contains(soundID) else { return false }
-        rendering.insert(soundID)
-        return true
-    }
-
-    func clear(_ soundID: String) {
-        lock.lock(); defer { lock.unlock() }
-        nextBuffer.removeValue(forKey: soundID)
-        rendering.remove(soundID)
-    }
-
-    func clearAll() {
-        lock.lock(); defer { lock.unlock() }
-        nextBuffer.removeAll()
-        rendering.removeAll()
-    }
-}
-
-// MARK: - 单个声音播放器
+// MARK: - 单个声音播放器（AVAudioEngine 架构，支持独立声道 pan）
+// 播放链路：AVAudioPlayerNode -> 独立 AVAudioMixerNode(panner) -> engine 主混音器
+// panner 节点用于每个声音独立的左右声道平衡控制（-1.0 全左 ~ 1.0 全右），
+// 从而支持空间音频 / 环绕声效果。
 @Observable
 final class SoundPlayer: Identifiable {
     let id: String
@@ -57,135 +19,159 @@ final class SoundPlayer: Identifiable {
     var volume: Float = 0.7
     var isPlaying: Bool = false
 
-    private var audioEngine: AVAudioEngine?
-    private var playerNode: AVAudioPlayerNode?
-    private var buffer: AVAudioPCMBuffer?
+    /// 声道平衡：-1.0 全左，0 居中，1.0 全右
+    var pan: Float = 0.0
 
-    private static let sr: Double = 44100
-    private static let dur: Double = 30.0
+    /// 声道指示标签（供 UI 显示 L/R/C）
+    var channelLabel: String {
+        if pan < -0.15 { return "L" }
+        if pan > 0.15 { return "R" }
+        return "C"
+    }
 
-    init(sound: SoundItem) { self.id = sound.id; self.sound = sound }
+    // 音频引擎节点
+    private let engine: AVAudioEngine
+    private let playerNode = AVAudioPlayerNode()
+    private let panner = AVAudioMixerNode()
+
+    private var audioFile: AVAudioFile?
+    private var isAttached = false
+
+    // 音量渐变
+    private var fadeTimer: Timer?
+    private var targetVolume: Float = 0
+
+    init(sound: SoundItem, engine: AVAudioEngine) {
+        self.id = sound.id
+        self.sound = sound
+        self.engine = engine
+    }
 
     // MARK: - 播放控制
 
     func start(effectiveVolume: Float? = nil) {
         guard !isPlaying else { return }
         AudioSessionConfig.configure()
-        isPlaying = true
 
-        let vol = effectiveVolume ?? self.volume
-        let snd = self.sound
-
-        if let ready = BufferPipeline.shared.take(snd.id) {
-            startPlayback(buffer: ready, volume: vol)
-            Self.prerenderNext(for: snd)
+        let subdirectory = "Sounds/\(sound.category.rawValue)"
+        guard let url = Bundle.main.url(forResource: sound.fileName, withExtension: "m4a", subdirectory: subdirectory)
+            ?? Bundle.main.url(forResource: sound.fileName, withExtension: "m4a") else {
+            print("[SoundPlayer] 未找到音频文件: \(sound.fileName) (category: \(sound.category.rawValue))")
+            isPlaying = false
             return
         }
 
-        renderQueue.async { [weak self] in
-            guard let buf = Self.renderNewBuffer(for: snd) else {
-                DispatchQueue.main.async { self?.isPlaying = false }
-                return
+        do {
+            let file = try AVAudioFile(forReading: url)
+            audioFile = file
+            attachIfNeeded(format: file.processingFormat)
+
+            if !engine.isRunning {
+                try engine.start()
             }
-            DispatchQueue.main.async {
-                guard let self = self, self.isPlaying else { return }
-                self.startPlayback(buffer: buf, volume: vol)
-                Self.prerenderNext(for: snd)
-            }
+
+            panner.outputVolume = 0
+            panner.pan = pan
+            scheduleLoop(file: file)
+            playerNode.play()
+            isPlaying = true
+
+            let vol = effectiveVolume ?? self.volume
+            fadeVolume(to: vol, duration: 1.5)
+        } catch {
+            print("[SoundPlayer] 播放失败: \(error)")
+            isPlaying = false
         }
     }
 
     func resumeIfNeeded() {
-        guard isPlaying else { return }
-        if let engine = audioEngine, engine.isRunning,
-           let player = playerNode, player.isPlaying { return }
+        guard isPlaying, let file = audioFile else { return }
         AudioSessionConfig.configure()
-        if let buf = buffer {
-            playerNode?.stop()
-            audioEngine?.stop()
-            startPlayback(buffer: buf, volume: volume)
+        do {
+            if !engine.isRunning { try engine.start() }
+            if !playerNode.isPlaying {
+                scheduleLoop(file: file)
+                playerNode.play()
+            }
+        } catch {
+            print("[SoundPlayer] 恢复失败: \(error)")
         }
     }
 
     func stop() {
         guard isPlaying else { return }
         isPlaying = false
-        if let engine = audioEngine {
-            let node = playerNode
-            fadeVolume(to: 0, duration: 0.5) { [weak self] in
-                node?.stop()
-                engine.stop()
-                self?.audioEngine = nil
-                self?.playerNode = nil
-                self?.buffer = nil
-            }
-        } else {
-            playerNode?.stop()
-            audioEngine?.stop()
-            audioEngine = nil; playerNode = nil; buffer = nil
+        fadeVolume(to: 0, duration: 0.5) { [weak self] in
+            guard let self else { return }
+            self.playerNode.stop()
+            self.detach()
+            self.audioFile = nil
         }
     }
 
+    /// 更新有效音量（已包含主音量系数）
     func updateVolume(_ v: Float) {
-        audioEngine?.mainMixerNode.outputVolume = v
+        targetVolume = v
+        panner.outputVolume = v
+    }
+
+    /// 更新声道平衡
+    func updatePan(_ p: Float) {
+        pan = max(-1.0, min(1.0, p))
+        panner.pan = pan
     }
 
     // MARK: - 内部实现
 
-    private static func prerenderNext(for snd: SoundItem) {
-        guard BufferPipeline.shared.markRendering(snd.id) else { return }
-        renderQueue.async {
-            if let buf = renderNewBuffer(for: snd) {
-                BufferPipeline.shared.store(snd.id, buffer: buf)
+    private func attachIfNeeded(format: AVAudioFormat) {
+        guard !isAttached else { return }
+        engine.attach(playerNode)
+        engine.attach(panner)
+        engine.connect(playerNode, to: panner, format: format)
+        engine.connect(panner, to: engine.mainMixerNode, format: format)
+        isAttached = true
+    }
+
+    private func detach() {
+        guard isAttached else { return }
+        engine.disconnectNodeOutput(playerNode)
+        engine.disconnectNodeOutput(panner)
+        engine.detach(playerNode)
+        engine.detach(panner)
+        isAttached = false
+    }
+
+    /// 无缝循环：使用 AVAudioPlayerNode 的 completion 重新排程实现无限循环。
+    private func scheduleLoop(file: AVAudioFile) {
+        file.framePosition = 0
+        playerNode.scheduleFile(file, at: nil) { [weak self] in
+            guard let self, self.isPlaying else { return }
+            DispatchQueue.main.async {
+                guard self.isPlaying, let f = self.audioFile else { return }
+                self.scheduleLoop(file: f)
             }
-        }
-    }
-
-    private static func renderNewBuffer(for snd: SoundItem) -> AVAudioPCMBuffer? {
-        let n = AVAudioFrameCount(sr * dur)
-        guard let fmt = AVAudioFormat(standardFormatWithSampleRate: sr, channels: 2),
-              let buf = AVAudioPCMBuffer(pcmFormat: fmt, frameCapacity: n) else { return nil }
-        buf.frameLength = n
-        AudioSynthesis.render(sound: snd, into: buf, sampleRate: sr)
-        return buf
-    }
-
-    private func startPlayback(buffer buf: AVAudioPCMBuffer, volume vol: Float) {
-        guard let fmt = AVAudioFormat(standardFormatWithSampleRate: Self.sr, channels: 2) else { return }
-        let engine = AVAudioEngine()
-        let player = AVAudioPlayerNode()
-        engine.attach(player)
-        engine.connect(player, to: engine.mainMixerNode, format: fmt)
-        engine.mainMixerNode.outputVolume = 0
-        do {
-            try engine.start()
-            player.scheduleBuffer(buf, at: nil, options: .loops)
-            player.play()
-            audioEngine = engine
-            playerNode = player
-            buffer = buf
-            fadeVolume(to: vol, duration: 1.5)
-        } catch {
-            print("引擎启动失败: \(error)")
-            isPlaying = false
         }
     }
 
     private func fadeVolume(to target: Float, duration: Double, completion: (() -> Void)? = nil) {
-        guard let engine = audioEngine else { completion?(); return }
-        let current = engine.mainMixerNode.outputVolume
-        let steps = max(1, Int(duration * 30))
-        let stepDelta = (target - current) / Float(steps)
-        var step = 0
-        Timer.scheduledTimer(withTimeInterval: duration / Double(steps), repeats: true) { timer in
-            step += 1
-            if step >= steps {
-                engine.mainMixerNode.outputVolume = target
-                timer.invalidate()
+        fadeTimer?.invalidate()
+        targetVolume = target
+        let start = panner.outputVolume
+        let steps = max(1, Int(duration * 60))
+        var currentStep = 0
+        let timer = Timer(timeInterval: duration / Double(steps), repeats: true) { [weak self] t in
+            guard let self else { t.invalidate(); return }
+            currentStep += 1
+            let progress = Float(currentStep) / Float(steps)
+            self.panner.outputVolume = start + (target - start) * progress
+            if currentStep >= steps {
+                self.panner.outputVolume = target
+                t.invalidate()
+                self.fadeTimer = nil
                 completion?()
-            } else {
-                engine.mainMixerNode.outputVolume = current + stepDelta * Float(step)
             }
         }
+        RunLoop.main.add(timer, forMode: .common)
+        fadeTimer = timer
     }
 }

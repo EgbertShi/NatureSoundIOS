@@ -28,15 +28,14 @@ struct SettingsPage: View {
                 .padding(.horizontal, 20)
                 .padding(.bottom, 40)
             }
-            .background(Color(hex: "0F0C29").ignoresSafeArea())
+            .background(Theme.settingsBg(.light).ignoresSafeArea())
             .navigationTitle("设置")
             .navigationBarTitleDisplayMode(.inline)
-            .toolbarColorScheme(.dark, for: .navigationBar)
             .toolbar {
                 ToolbarItem(placement: .topBarTrailing) {
                     Button("完成") { isPresented = false }
                         .font(.system(size: 14, weight: .medium))
-                        .foregroundStyle(Color(hex: "667eea"))
+                        .foregroundStyle(Theme.accent)
                 }
             }
             .alert("清除全部场景", isPresented: $showClearScenesAlert) {
@@ -59,15 +58,13 @@ struct SettingsPage: View {
         VStack(spacing: 8) {
             Image(systemName: "leaf.fill")
                 .font(.system(size: 36))
-                .foregroundStyle(
-                    LinearGradient(colors: [Color(hex: "667eea"), Color(hex: "764ba2")], startPoint: .topLeading, endPoint: .bottomTrailing)
-                )
+                .foregroundStyle(Theme.accentGradient)
             Text("清籁")
                 .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundStyle(Color.white.opacity(0.9))
+                .foregroundStyle(Theme.textPrimary(.light))
             Text("聆听自然 · 疗愈心灵")
                 .font(.system(size: 12))
-                .foregroundStyle(Color.white.opacity(0.4))
+                .foregroundStyle(Theme.textSecondary(.light))
         }
         .padding(.top, 8)
     }
@@ -80,7 +77,7 @@ struct SettingsPage: View {
                 Haptics.light()
                 showClearScenesAlert = true
             } label: {
-                settingRow(icon: "trash.circle.fill", iconColor: Color(hex: "FF6B6B"), title: "清除全部自定义场景", subtitle: "当前 \(sceneManager.userScenes.count) 个场景")
+                settingRow(icon: "trash.circle.fill", iconColor: Theme.danger, title: "清除全部自定义场景", subtitle: "当前 \(sceneManager.userScenes.count) 个场景")
             }
             .buttonStyle(.plain)
             .disabled(sceneManager.userScenes.isEmpty)
@@ -95,7 +92,7 @@ struct SettingsPage: View {
                 Haptics.light()
                 showResetWelcomeAlert = true
             } label: {
-                settingRow(icon: "questionmark.circle.fill", iconColor: Color(hex: "667eea"), title: "重置引导页", subtitle: "下次启动时显示欢迎引导")
+                settingRow(icon: "questionmark.circle.fill", iconColor: Theme.accent, title: "重置引导页", subtitle: "下次启动时显示欢迎引导")
             }
             .buttonStyle(.plain)
         }
@@ -106,13 +103,13 @@ struct SettingsPage: View {
         VStack(alignment: .leading, spacing: 12) {
             sectionHeader("关于")
             VStack(spacing: 0) {
-                settingRow(icon: "info.circle.fill", iconColor: Color.white.opacity(0.4), title: "版本", trailing: "1.0.0")
-                Divider().background(Color.white.opacity(0.05)).padding(.horizontal, 14)
-                settingRow(icon: "waveform.circle.fill", iconColor: Color.white.opacity(0.4), title: "声音库", trailing: "\(SoundItem.allSounds.count) 种声音")
-                Divider().background(Color.white.opacity(0.05)).padding(.horizontal, 14)
-                settingRow(icon: "square.stack.3d.up.fill", iconColor: Color.white.opacity(0.4), title: "预设场景", trailing: "\(ScenePreset.allPresets.count) 个场景")
+                settingRow(icon: "info.circle.fill", iconColor: Theme.iconDefault(.light), title: "版本", trailing: "1.0.0")
+                Divider().background(Theme.separator(.light)).padding(.horizontal, 14)
+                settingRow(icon: "waveform.circle.fill", iconColor: Theme.iconDefault(.light), title: "声音库", trailing: "\(SoundItem.allSounds.count) 种声音")
+                Divider().background(Theme.separator(.light)).padding(.horizontal, 14)
+                settingRow(icon: "square.stack.3d.up.fill", iconColor: Theme.iconDefault(.light), title: "预设场景", trailing: "\(ScenePreset.allPresets.count) 个场景")
             }
-            .background(RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.04)))
+            .background(RoundedRectangle(cornerRadius: 12).fill(Theme.inactiveFill(.light)))
         }
     }
 
@@ -120,28 +117,28 @@ struct SettingsPage: View {
     private func sectionHeader(_ title: String) -> some View {
         Text(title)
             .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(Color.white.opacity(0.5))
+            .foregroundStyle(Theme.textSecondary(.light))
     }
 
     private func settingRow(icon: String, iconColor: Color, title: String, subtitle: String? = nil, trailing: String? = nil) -> some View {
         HStack {
             Image(systemName: icon).font(.system(size: 18)).foregroundStyle(iconColor)
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.system(size: 14, weight: .medium)).foregroundStyle(Color.white.opacity(0.85))
-                if let subtitle { Text(subtitle).font(.system(size: 11)).foregroundStyle(Color.white.opacity(0.4)) }
+                Text(title).font(.system(size: 14, weight: .medium)).foregroundStyle(Theme.textPrimary(.light))
+                if let subtitle { Text(subtitle).font(.system(size: 11)).foregroundStyle(Theme.textSecondary(.light)) }
             }
             Spacer()
             if let trailing {
-                Text(trailing).font(.system(size: 13, design: .monospaced)).foregroundStyle(Color.white.opacity(0.4))
+                Text(trailing).font(.system(size: 13, design: .monospaced)).foregroundStyle(Theme.textSecondary(.light))
             } else {
-                Image(systemName: "chevron.right").font(.system(size: 12)).foregroundStyle(Color.white.opacity(0.3))
+                Image(systemName: "chevron.right").font(.system(size: 12)).foregroundStyle(Theme.textTertiary(.light))
             }
         }
         .padding(14)
         .background(
             Group {
                 if subtitle != nil {
-                    RoundedRectangle(cornerRadius: 12).fill(Color.white.opacity(0.04))
+                    RoundedRectangle(cornerRadius: 12).fill(Theme.inactiveFill(.light))
                 } else {
                     Color.clear
                 }

@@ -1,0 +1,296 @@
+{
+  "version": 2,
+  "baseURL": "https://naturesound-assets.oss-cn-beijing.aliyuncs.com",
+  "videos": [
+    {
+      "sceneID": "rainy_reading",
+      "name": "雨夜读书",
+      "videos": [
+        {
+          "videoPath": "场景视频/rainy_reading_1.mp4",
+          "thumbnailPath": "场景缩略图/rainy_reading_1.jpg",
+          "fileSize": 4043718
+        },
+        {
+          "videoPath": "场景视频/rainy_reading_2.mp4",
+          "thumbnailPath": "场景缩略图/rainy_reading_2.jpg",
+          "fileSize": 4686722
+        },
+        {
+          "videoPath": "场景视频/rainy_reading_3.mp4",
+          "thumbnailPath": "场景缩略图/rainy_reading_3.jpg",
+          "fileSize": 3419281
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "forest_meditation",
+      "name": "森林冥想",
+      "videos": [
+        {
+          "videoPath": "场景视频/forest_meditation_1.mp4",
+          "thumbnailPath": "场景缩略图/forest_meditation_1.jpg",
+          "fileSize": 7476777
+        },
+        {
+          "videoPath": "场景视频/forest_meditation_2.mp4",
+          "thumbnailPath": "场景缩略图/forest_meditation_2.jpg",
+          "fileSize": 7283153
+        },
+        {
+          "videoPath": "场景视频/forest_meditation_3.mp4",
+          "thumbnailPath": "场景缩略图/forest_meditation_3.jpg",
+          "fileSize": 5612580
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "ocean_night",
+      "name": "海边夜晚",
+      "videos": [
+        {
+          "videoPath": "场景视频/ocean_night_1.mp4",
+          "thumbnailPath": "场景缩略图/ocean_night_1.jpg",
+          "fileSize": 4075447
+        },
+        {
+          "videoPath": "场景视频/ocean_night_2.mp4",
+          "thumbnailPath": "场景缩略图/ocean_night_2.jpg",
+          "fileSize": 7503008
+        },
+        {
+          "videoPath": "场景视频/ocean_night_3.mp4",
+          "thumbnailPath": "场景缩略图/ocean_night_3.jpg",
+          "fileSize": 5675698
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "zen_temple",
+      "name": "禅意寺院",
+      "videos": [
+        {
+          "videoPath": "场景视频/zen_temple_1.mp4",
+          "thumbnailPath": "场景缩略图/zen_temple_1.jpg",
+          "fileSize": 5109490
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "campfire_night",
+      "name": "篝火露营",
+      "videos": [
+        {
+          "videoPath": "场景视频/campfire_night_1.mp4",
+          "thumbnailPath": "场景缩略图/campfire_night_1.jpg",
+          "fileSize": 3346067
+        },
+        {
+          "videoPath": "场景视频/campfire_night_2.mp4",
+          "thumbnailPath": "场景缩略图/campfire_night_2.jpg",
+          "fileSize": 3837985
+        },
+        {
+          "videoPath": "场景视频/campfire_night_3.mp4",
+          "thumbnailPath": "场景缩略图/campfire_night_3.jpg",
+          "fileSize": 7670285
+        },
+        {
+          "videoPath": "场景视频/campfire_night_4.mp4",
+          "thumbnailPath": "场景缩略图/campfire_night_4.jpg",
+          "fileSize": 4811819
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "spring_garden",
+      "name": "春日花园",
+      "videos": [
+        {
+          "videoPath": "场景视频/spring_garden.mp4",
+          "thumbnailPath": "场景缩略图/spring_garden.jpg",
+          "fileSize": 0
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "deep_focus",
+      "name": "深度专注",
+      "videos": [
+        {
+          "videoPath": "场景视频/deep_focus_1.mp4",
+          "thumbnailPath": "场景缩略图/deep_focus_1.jpg",
+          "fileSize": 1541531
+        },
+        {
+          "videoPath": "场景视频/deep_focus_2.mp4",
+          "thumbnailPath": "场景缩略图/deep_focus_2.jpg",
+          "fileSize": 4679193
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "summer_noon",
+      "name": "盛夏午后",
+      "videos": [
+        {
+          "videoPath": "场景视频/summer_noon.mp4",
+          "thumbnailPath": "场景缩略图/summer_noon.jpg",
+          "fileSize": 0
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "winter_night",
+      "name": "冬夜暖炉",
+      "videos": [
+        {
+          "videoPath": "场景视频/winter_night.mp4",
+          "thumbnailPath": "场景缩略图/winter_night.jpg",
+          "fileSize": 0
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "cave_explore",
+      "name": "洞穴探秘",
+      "videos": [
+        {
+          "videoPath": "场景视频/cave_explore.mp4",
+          "thumbnailPath": "场景缩略图/cave_explore.jpg",
+          "fileSize": 0
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "lake_dawn",
+      "name": "湖畔晨曦",
+      "videos": [
+        {
+          "videoPath": "场景视频/lake_dawn.mp4",
+          "thumbnailPath": "场景缩略图/lake_dawn.jpg",
+          "fileSize": 0
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "starry_night",
+      "name": "星空露营",
+      "videos": [
+        {
+          "videoPath": "场景视频/starry_night.mp4",
+          "thumbnailPath": "场景缩略图/starry_night.jpg",
+          "fileSize": 0
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "waterfall_zen",
+      "name": "瀑布禅修",
+      "videos": [
+        {
+          "videoPath": "场景视频/waterfall_zen.mp4",
+          "thumbnailPath": "场景缩略图/waterfall_zen.jpg",
+          "fileSize": 0
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "rainy_cafe",
+      "name": "雨日咖啡馆",
+      "videos": [
+        {
+          "videoPath": "场景视频/rainy_cafe.mp4",
+          "thumbnailPath": "场景缩略图/rainy_cafe.jpg",
+          "fileSize": 0
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "countryside_dawn",
+      "name": "田园清晨",
+      "videos": [
+        {
+          "videoPath": "场景视频/countryside_dawn.mp4",
+          "thumbnailPath": "场景缩略图/countryside_dawn.jpg",
+          "fileSize": 0
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "tropical_night",
+      "name": "热带雨夜",
+      "videos": [
+        {
+          "videoPath": "场景视频/tropical_night.mp4",
+          "thumbnailPath": "场景缩略图/tropical_night.jpg",
+          "fileSize": 0
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "storm_shelter",
+      "name": "暴风雨夜",
+      "videos": [
+        {
+          "videoPath": "场景视频/storm_shelter.mp4",
+          "thumbnailPath": "场景缩略图/storm_shelter.jpg",
+          "fileSize": 0
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "mountain_spring",
+      "name": "山涧听泉",
+      "videos": [
+        {
+          "videoPath": "场景视频/mountain_spring.mp4",
+          "thumbnailPath": "场景缩略图/mountain_spring.jpg",
+          "fileSize": 0
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "tibetan_temple",
+      "name": "藏寺梵音",
+      "videos": [
+        {
+          "videoPath": "场景视频/tibetan_temple.mp4",
+          "thumbnailPath": "场景缩略图/tibetan_temple.jpg",
+          "fileSize": 0
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "rural_summer",
+      "name": "乡野仲夏",
+      "videos": [
+        {
+          "videoPath": "场景视频/rural_summer.mp4",
+          "thumbnailPath": "场景缩略图/rural_summer.jpg",
+          "fileSize": 0
+        }
+      ],
+      "version": 1
+    }
+  ]
+}

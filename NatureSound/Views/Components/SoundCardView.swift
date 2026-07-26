@@ -15,45 +15,37 @@ struct SoundCardView: View {
     let onTap: () -> Void
 
     @State private var isPressed = false
-    @State private var pulseAnimation = false
 
     var body: some View {
         Button(action: onTap) {
-            VStack(spacing: 10) {
-                ZStack {
-                    if isActive {
-                        Circle()
-                            .fill(sound.color.opacity(0.3))
-                            .frame(width: 56, height: 56)
-                            .scaleEffect(pulseAnimation ? 1.2 : 1.0)
-                            .opacity(pulseAnimation ? 0.3 : 0.6)
+            VStack(spacing: 8) {
+                Circle()
+                    .fill(isActive ? sound.color.opacity(0.18) : sound.color.opacity(0.12))
+                    .frame(width: 46, height: 46)
+                    .overlay {
+                        Image(systemName: sound.icon)
+                            .font(.system(size: 19, weight: .medium))
+                            .foregroundStyle(sound.color)
                     }
-                    Circle()
-                        .fill(isActive ? sound.color.opacity(0.25) : Color.white.opacity(0.06))
-                        .frame(width: 48, height: 48)
-                    Image(systemName: sound.icon)
-                        .font(.system(size: 20, weight: .medium))
-                        .foregroundStyle(isActive ? sound.color : Color.white.opacity(0.5))
-                        .symbolEffect(.bounce, value: isActive)
-                }
-                .frame(height: 56)
 
                 Text(sound.name)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(isActive ? sound.color : Color.white.opacity(isDisabled ? 0.3 : 0.6))
+                    .font(.system(size: 11, weight: .medium))
+                    .foregroundStyle(isActive ? sound.color : Theme.textPrimary(.light).opacity(isDisabled ? 0.5 : 1))
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity)
-            .padding(.vertical, 14)
+            .frame(minHeight: 88)
+            .padding(.horizontal, 6)
             .background(
-                RoundedRectangle(cornerRadius: 16)
-                    .fill(isActive ? sound.color.opacity(0.1) : Color.white.opacity(0.04))
+                RoundedRectangle(cornerRadius: 10, style: .continuous)
+                    .fill(isActive ? sound.color.opacity(0.08) : Theme.cardFill(.light))
                     .overlay(
-                        RoundedRectangle(cornerRadius: 16)
-                            .stroke(isActive ? sound.color.opacity(0.4) : Color.white.opacity(0.06), lineWidth: 1)
+                        RoundedRectangle(cornerRadius: 10, style: .continuous)
+                            .stroke(isActive ? sound.color.opacity(0.26) : .clear, lineWidth: 1)
                     )
+                    .shadow(color: .black.opacity(isActive ? 0.02 : 0.06), radius: 7, y: 3)
             )
-            .scaleEffect(isPressed ? 0.95 : 1.0)
+            .scaleEffect(isPressed ? 0.96 : 1.0)
             .opacity(isDisabled ? 0.5 : 1.0)
         }
         .buttonStyle(.plain)
@@ -61,16 +53,6 @@ struct SoundCardView: View {
         .onLongPressGesture(minimumDuration: .infinity, pressing: { pressing in
             withAnimation(.easeInOut(duration: 0.15)) { isPressed = pressing }
         }, perform: {})
-        .onChange(of: isActive) { _, newValue in
-            if newValue {
-                withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) { pulseAnimation = true }
-            } else { pulseAnimation = false }
-        }
-        .onAppear {
-            if isActive {
-                withAnimation(.easeInOut(duration: 1.5).repeatForever(autoreverses: true)) { pulseAnimation = true }
-            }
-        }
     }
 }
 

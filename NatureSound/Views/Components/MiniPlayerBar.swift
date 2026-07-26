@@ -24,7 +24,7 @@ struct MiniPlayerBar: View {
                             .font(.system(size: 13))
                             .foregroundStyle(.white)
                     }
-                    .overlay(Circle().stroke(Color(hex: "1A1A2E"), lineWidth: 2))
+                    .overlay(Circle().stroke(Theme.tabBarFill(.light), lineWidth: 2))
                     .scaleEffect(animatePulse ? 1.05 : 1.0)
                 }
             }
@@ -35,15 +35,15 @@ struct MiniPlayerBar: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(audioManager.activeCount) 种声音混合中")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(Color.white.opacity(0.9))
+                    .foregroundStyle(Theme.textPrimary(.light))
                 if timerManager.isActive {
                     Text(timerManager.displayTime + " 后停止")
                         .font(.system(size: 11, weight: .medium, design: .monospaced))
-                        .foregroundStyle(Color(hex: "FF6B6B").opacity(0.8))
+                        .foregroundStyle(Theme.danger.opacity(0.8))
                 } else {
-                    Text("点击展开播放器")
+                    Text("点击进入沉浸模式")
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Color.white.opacity(0.35))
+                        .foregroundStyle(Theme.textTertiary(.light))
                 }
             }
 
@@ -51,16 +51,15 @@ struct MiniPlayerBar: View {
 
             Image(systemName: "chevron.up")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Color.white.opacity(0.4))
+                .foregroundStyle(Theme.textTertiary(.light))
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(.ultraThinMaterial)
-                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.white.opacity(0.1), lineWidth: 0.5))
-                .shadow(color: .black.opacity(0.3), radius: 20, y: -5)
+                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Theme.cardBorder(.light), lineWidth: 0.5))
+                .shadow(color: .black.opacity(0.1), radius: 20, y: -5)
         )
-        .environment(\.colorScheme, .dark)
     }
 }

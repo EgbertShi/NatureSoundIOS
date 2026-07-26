@@ -43,10 +43,10 @@ struct CategoryChip: View {
             .padding(.vertical, 8)
             .background(
                 Capsule()
-                    .fill(isSelected ? Color.white.opacity(0.15) : Color.clear)
-                    .overlay(Capsule().stroke(Color.white.opacity(isSelected ? 0.3 : 0.1), lineWidth: 1))
+                    .fill(isSelected ? Theme.accent.opacity(0.1) : Theme.inactiveFill(.light))
+                    .overlay(Capsule().stroke(isSelected ? Theme.accent.opacity(0.25) : Theme.cardBorder(.light), lineWidth: 1))
             )
-            .foregroundStyle(Color.white.opacity(isSelected ? 0.95 : 0.5))
+            .foregroundStyle(isSelected ? Theme.accent : Theme.textSecondary(.light))
         }
         .buttonStyle(.plain)
     }

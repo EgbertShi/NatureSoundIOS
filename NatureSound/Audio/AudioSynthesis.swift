@@ -24,16 +24,16 @@ enum AudioSynthesis {
 
         var mono = [Float](repeating: 0, count: N)
 
-        switch sound.category {
-        case .water:   synWater(sound, &mono, sr, &rng)
-        case .weather: synWeather(sound, &mono, sr, &rng)
-        case .bird:    synBird(sound, &mono, sr, &rng)
-        case .insect:  synInsect(sound, &mono, sr, &rng)
-        case .fire:    synFire(sound, &mono, sr, &rng)
-        case .zen:     synZen(sound, &mono, sr, &rng)
-        case .forest:  synForest(sound, &mono, sr, &rng)
-        case .ambient: synAmbient(sound, &mono, sr, &rng)
-        case .all:     break
+        switch sound.category.rawValue {
+        case SoundCategory.water.rawValue:   synWater(sound, &mono, sr, &rng)
+        case SoundCategory.weather.rawValue: synWeather(sound, &mono, sr, &rng)
+        case SoundCategory.bird.rawValue:    synBird(sound, &mono, sr, &rng)
+        case SoundCategory.insect.rawValue:  synInsect(sound, &mono, sr, &rng)
+        case SoundCategory.fire.rawValue:    synFire(sound, &mono, sr, &rng)
+        case SoundCategory.zen.rawValue:     synZen(sound, &mono, sr, &rng)
+        case SoundCategory.forest.rawValue:  synForest(sound, &mono, sr, &rng)
+        case SoundCategory.ambient.rawValue: synAmbient(sound, &mono, sr, &rng)
+        default:                              break
         }
 
         applyGlobalSoftening(&mono, sr: sr)

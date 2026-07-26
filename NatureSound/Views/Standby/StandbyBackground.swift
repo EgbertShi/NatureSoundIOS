@@ -9,8 +9,6 @@ import SwiftUI
 
 // MARK: - 待机背景
 struct StandbyBackground: View {
-    let breathingScale: CGFloat
-    let breathingSpeed: BreathingSpeed
     let primaryColor: Color
     let activePlayers: [SoundPlayer]
 
@@ -22,23 +20,22 @@ struct StandbyBackground: View {
             )
             .ignoresSafeArea()
 
-            if breathingSpeed != .off {
-                ForEach(Array(activePlayers.prefix(3).enumerated()), id: \.offset) { idx, player in
-                    Circle()
-                        .fill(
-                            RadialGradient(
-                                colors: [player.sound.color.opacity(0.12), player.sound.color.opacity(0.04), .clear],
-                                center: .center, startRadius: 0, endRadius: 120
-                            )
+            // 声音色彩光晕（静态）
+            ForEach(Array(activePlayers.prefix(3).enumerated()), id: \.offset) { idx, player in
+                Circle()
+                    .fill(
+                        RadialGradient(
+                            colors: [player.sound.color.opacity(0.1), player.sound.color.opacity(0.03), .clear],
+                            center: .center, startRadius: 0, endRadius: 120
                         )
-                        .frame(width: 260, height: 260)
-                        .blur(radius: 40)
-                        .offset(x: CGFloat(idx - 1) * 90, y: CGFloat(idx - 1) * 50)
-                        .scaleEffect(breathingScale)
-                        .opacity(0.8)
-                }
+                    )
+                    .frame(width: 260, height: 260)
+                    .blur(radius: 40)
+                    .offset(x: CGFloat(idx - 1) * 90, y: CGFloat(idx - 1) * 50)
+                    .opacity(0.7)
             }
 
+            // 主色调光晕
             Circle()
                 .fill(
                     RadialGradient(
@@ -47,7 +44,6 @@ struct StandbyBackground: View {
                     )
                 )
                 .frame(width: 400, height: 400)
-                .scaleEffect(breathingSpeed != .off ? breathingScale : 1.0)
                 .opacity(0.5)
 
             starField

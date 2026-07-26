@@ -48,6 +48,13 @@ struct StandbyMixer: View {
                     HStack(spacing: 12) {
                         Circle().fill(player.sound.color.opacity(0.6)).frame(width: 8, height: 8)
                         Text(player.sound.name).font(.system(size: 12, weight: .medium)).foregroundStyle(Color.white.opacity(0.6)).lineLimit(1)
+                        if audioManager.spatialMode != .off {
+                            Text(player.channelLabel)
+                                .font(.system(size: 9, weight: .bold, design: .monospaced))
+                                .foregroundStyle(Color(hex: "667eea"))
+                                .frame(width: 16, height: 16)
+                                .background(Circle().fill(Color(hex: "667eea").opacity(0.15)))
+                        }
                         Spacer()
                         Slider(value: Binding(
                             get: { Double(player.volume) },
@@ -64,6 +71,17 @@ struct StandbyMixer: View {
                             .font(.system(size: 10, weight: .medium, design: .monospaced))
                             .foregroundStyle(Color.white.opacity(0.3))
                             .frame(width: 26, alignment: .trailing)
+                        Button {
+                            Haptics.light()
+                            audioManager.removeSound(player.sound)
+                        } label: {
+                            Image(systemName: "xmark.circle.fill")
+                                .font(.system(size: 16))
+                                .foregroundStyle(Color.white.opacity(0.35))
+                                .frame(width: 28, height: 28)
+                        }
+                        .buttonStyle(.plain)
+                        .accessibilityLabel("移除\(player.sound.name)")
                     }
                 }
             }
@@ -90,6 +108,8 @@ struct StandbyControlPanel: View {
             volumeSection
             Divider().background(Color.white.opacity(0.06))
             brightnessSection
+            Divider().background(Color.white.opacity(0.06))
+            spatialSection
         }
         .padding(.horizontal, 20)
         .padding(.vertical, 18)
@@ -98,6 +118,51 @@ struct StandbyControlPanel: View {
                 .fill(.ultraThinMaterial)
                 .overlay(RoundedRectangle(cornerRadius: 20).stroke(Color.white.opacity(0.08), lineWidth: 0.5))
         )
+    }
+
+    // MARK: - 空间音效
+    private var spatialSection: some View {
+        VStack(spacing: 10) {
+            HStack {
+                Image(systemName: "airpodspro").font(.system(size: 12)).foregroundStyle(Color.white.opacity(0.4))
+                Text("音效").font(.system(size: 12, weight: .medium)).foregroundStyle(Color.white.opacity(0.5))
+                Spacer()
+                Text(audioManager.spatialMode == .off ? "戴耳机体验更佳" : "已开启")
+                    .font(.system(size: 10))
+                    .foregroundStyle(Color.white.opacity(0.3))
+            }
+            HStack(spacing: 6) {
+                ForEach(SpatialMode.allCases) { mode in
+                    spatialModeButton(mode)
+                }
+            }
+        }
+    }
+
+    private func spatialModeButton(_ mode: SpatialMode) -> some View {
+        let selected = audioManager.spatialMode == mode
+        return Button {
+            Haptics.light()
+            audioManager.setSpatialMode(mode)
+            onInteract()
+        } label: {
+            VStack(spacing: 4) {
+                Image(systemName: mode.icon).font(.system(size: 15))
+                Text(mode.rawValue).font(.system(size: 10, weight: .medium))
+            }
+            .foregroundStyle(selected ? Color(hex: "667eea") : Color.white.opacity(0.45))
+            .frame(maxWidth: .infinity)
+            .padding(.vertical, 10)
+            .background(
+                RoundedRectangle(cornerRadius: 12)
+                    .fill(selected ? Color(hex: "667eea").opacity(0.15) : Color.white.opacity(0.05))
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12)
+                            .stroke(selected ? Color(hex: "667eea").opacity(0.4) : Color.white.opacity(0.06), lineWidth: 0.5)
+                    )
+            )
+        }
+        .buttonStyle(.plain)
     }
 
     private var volumeSection: some View {
@@ -149,12 +214,11 @@ struct StandbyControlPanel: View {
 struct StandbyToolBar: View {
     let showMixer: Bool
     let clockStyle: ClockStyle
-    let breathingSpeed: BreathingSpeed
-    let autoHide: AutoHideDuration
     let use24Hour: Bool
     let showSeconds: Bool
     let showDate: Bool
     let clockScale: Double
+    let timerIsActive: Bool
 
     let onToggleMixer: () -> Void
     let onSelectClockStyle: (ClockStyle) -> Void
@@ -162,15 +226,16 @@ struct StandbyToolBar: View {
     let onToggleSeconds: (Bool) -> Void
     let onToggleDate: (Bool) -> Void
     let onSelectClockScale: (Double) -> Void
-    let onSelectBreathingSpeed: (BreathingSpeed) -> Void
-    let onSelectAutoHide: (AutoHideDuration) -> Void
+    let onStartTimer: (Int) -> Void
+    let onCancelTimer: () -> Void
+    let onSaveScene: () -> Void
 
     var body: some View {
         HStack(spacing: 0) {
             mixerButton.frame(maxWidth: .infinity)
             clockMenu.frame(maxWidth: .infinity)
-            breathingMenu.frame(maxWidth: .infinity)
-            autoHideMenu.frame(maxWidth: .infinity)
+            timerMenu.frame(maxWidth: .infinity)
+            sceneButton.frame(maxWidth: .infinity)
         }
         .padding(.vertical, 8)
         .padding(.horizontal, 8)
@@ -193,7 +258,7 @@ struct StandbyToolBar: View {
             Haptics.light()
             onToggleMixer()
         } label: {
-            toolIcon(showMixer ? "slider.horizontal.3.fill" : "slider.horizontal.3", "混音器", color: showMixer ? Color(hex: "667eea") : nil)
+            toolIcon("slider.horizontal.3", "混音器", color: showMixer ? Color(hex: "667eea") : nil)
         }
         .buttonStyle(.plain)
     }
@@ -227,30 +292,38 @@ struct StandbyToolBar: View {
         .buttonStyle(.plain)
     }
 
-    private var breathingMenu: some View {
+    // MARK: - 定时菜单
+    private var timerMenu: some View {
         Menu {
-            ForEach(BreathingSpeed.allCases, id: \.self) { speed in
-                Button { Haptics.light(); onSelectBreathingSpeed(speed) } label: {
-                    if breathingSpeed == speed { Label(speed.rawValue, systemImage: "checkmark") }
-                    else { Text(speed.rawValue) }
+            if timerIsActive {
+                Button(role: .destructive) { Haptics.light(); onCancelTimer() } label: {
+                    Label("取消定时", systemImage: "xmark.circle")
+                }
+            } else {
+                Section("定时关闭") {
+                    ForEach(TimerManager.presetMinutes, id: \.self) { minutes in
+                        Button {
+                            Haptics.medium()
+                            onStartTimer(minutes)
+                        } label: {
+                            Text("\(minutes) 分钟")
+                        }
+                    }
                 }
             }
         } label: {
-            toolIcon(breathingSpeed == .off ? "circle.dashed" : "waveform.circle", "光晕", color: breathingSpeed == .off ? nil : Color.white.opacity(0.45))
+            toolIcon(timerIsActive ? "timer.fill" : "timer", "定时", color: timerIsActive ? Color(hex: "FF6B6B") : nil)
         }
         .buttonStyle(.plain)
     }
 
-    private var autoHideMenu: some View {
-        Menu {
-            ForEach(AutoHideDuration.allCases, id: \.self) { dur in
-                Button { Haptics.light(); onSelectAutoHide(dur) } label: {
-                    if autoHide == dur { Label(dur.rawValue, systemImage: "checkmark") }
-                    else { Text(dur.rawValue) }
-                }
-            }
+    // MARK: - 保存场景按钮
+    private var sceneButton: some View {
+        Button {
+            Haptics.light()
+            onSaveScene()
         } label: {
-            toolIcon("eye.slash", "隐藏")
+            toolIcon("star", "场景")
         }
         .buttonStyle(.plain)
     }
@@ -258,10 +331,12 @@ struct StandbyToolBar: View {
 
 // MARK: - 顶部栏
 struct StandbyTopBar: View {
-    let mode: StandbyMode
     let timerManager: TimerManager
+    let isLandscape: Bool
     let onExit: () -> Void
+    let onStopAll: () -> Void
     let onAddTime: (Int) -> Void
+    let onToggleOrientation: () -> Void
 
     var body: some View {
         HStack(spacing: 12) {
@@ -279,7 +354,7 @@ struct StandbyTopBar: View {
 
             Spacer()
 
-            if mode == .timer && timerManager.isActive {
+            if timerManager.isActive {
                 HStack(spacing: 6) {
                     addButton(5)
                     addButton(10)
@@ -289,14 +364,28 @@ struct StandbyTopBar: View {
 
             Spacer()
 
-            HStack(spacing: 5) {
-                Image(systemName: mode == .immersive ? "moon.stars.fill" : "timer").font(.system(size: 11))
-                Text(mode == .immersive ? "沉浸" : "定时").font(.system(size: 12, weight: .medium))
+            Button {
+                Haptics.light()
+                onToggleOrientation()
+            } label: {
+                Image(systemName: isLandscape ? "rectangle.portrait" : "rectangle.landscape.rotate")
+                    .font(.system(size: 14, weight: .medium))
+                    .foregroundStyle(Color.white.opacity(0.65))
+                    .frame(width: 38, height: 38)
+                    .background(Circle().fill(.ultraThinMaterial).overlay(Circle().stroke(Color.white.opacity(0.08), lineWidth: 0.5)))
             }
-            .foregroundStyle(Color.white.opacity(0.45))
-            .padding(.horizontal, 12)
-            .padding(.vertical, 8)
-            .background(Capsule().fill(.ultraThinMaterial).overlay(Capsule().stroke(Color.white.opacity(0.06), lineWidth: 0.5)))
+            .buttonStyle(.plain)
+
+            Button {
+                onStopAll()
+            } label: {
+                Image(systemName: "stop.fill")
+                    .font(.system(size: 13, weight: .medium))
+                    .foregroundStyle(Color.white.opacity(0.7))
+                    .frame(width: 38, height: 38)
+                    .background(Circle().fill(Color.red.opacity(0.2)).overlay(Circle().stroke(Color.red.opacity(0.15), lineWidth: 0.5)))
+            }
+            .buttonStyle(.plain)
         }
         .padding(.horizontal, 20)
         .padding(.top, 8)

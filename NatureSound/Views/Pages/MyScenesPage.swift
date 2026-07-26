@@ -11,6 +11,7 @@ import SwiftUI
 struct MyScenesPage: View {
     let audioManager: AudioManager
     let sceneManager: SceneManager
+    @Binding var showSettings: Bool
     @State private var sceneToDelete: UserScene?
     @State private var sceneToRename: UserScene?
     @State private var renameText = ""
@@ -18,14 +19,39 @@ struct MyScenesPage: View {
     var body: some View {
         ScrollView(showsIndicators: false) {
             VStack(alignment: .leading, spacing: 20) {
+                // 页面标题栏
+                HStack {
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("我的")
+                            .font(.system(size: 28, weight: .bold, design: .rounded))
+                            .foregroundStyle(Theme.textPrimary(.light))
+                        Text("保存你的专属声音组合")
+                            .font(.system(size: 12, weight: .medium))
+                            .foregroundStyle(Theme.textTertiary(.light))
+                    }
+                    Spacer()
+                    Button {
+                        Haptics.light()
+                        showSettings = true
+                    } label: {
+                        Image(systemName: "gearshape")
+                            .font(.system(size: 16, weight: .medium))
+                            .foregroundStyle(Theme.iconDefault(.light))
+                            .frame(width: 36, height: 36)
+                            .background(Circle().fill(Theme.inactiveFill(.light)))
+                    }
+                    .buttonStyle(.plain)
+                }
+                .padding(.horizontal, 20)
+                .padding(.top, 54)
+
                 if sceneManager.userScenes.isEmpty {
                     emptyState
                 } else {
                     Text("我的场景")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(Color.white.opacity(0.8))
+                        .foregroundStyle(Theme.textSecondary(.light))
                         .padding(.horizontal, 20)
-                        .padding(.top, 16)
 
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
                         ForEach(sceneManager.userScenes) { scene in
@@ -71,13 +97,13 @@ struct MyScenesPage: View {
         VStack(spacing: 16) {
             Image(systemName: "star")
                 .font(.system(size: 44))
-                .foregroundStyle(Color.white.opacity(0.15))
+                .foregroundStyle(Theme.textTertiary(.light).opacity(0.5))
             Text("还没有保存的场景")
                 .font(.system(size: 16, weight: .medium))
-                .foregroundStyle(Color.white.opacity(0.4))
+                .foregroundStyle(Theme.textSecondary(.light))
             Text("在播放器中点击「保存为场景」\n即可在这里找到你的专属组合")
                 .font(.system(size: 13))
-                .foregroundStyle(Color.white.opacity(0.3))
+                .foregroundStyle(Theme.textTertiary(.light))
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)
