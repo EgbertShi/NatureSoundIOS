@@ -59,7 +59,7 @@ struct MiniPlayerBar: View {
                 if audioManager.isPaused {
                     audioManager.playAll()
                 } else {
-                    audioManager.stopAll()
+                    withAnimation(.spring(response: 0.4)) { audioManager.stopAll() }
                 }
             } label: {
                 Image(systemName: audioManager.isPaused ? "play.fill" : "stop.fill")

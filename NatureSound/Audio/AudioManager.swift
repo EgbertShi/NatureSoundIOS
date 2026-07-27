@@ -41,11 +41,13 @@ final class AudioManager {
     /// 空间音频模式（关闭 / 空间音频 / 环绕声）
     var spatialMode: SpatialMode = .off
 
+    /// 当前正在播放的场景 ID，用于锁屏 Now Playing 封面展示。
+    var currentSceneID: String?
+    /// 当前场景名称，用于 Now Playing 副标题。
+    var currentSceneName: String?
+
     var activeCount: Int { activePlayers.count }
     var canAddMore: Bool { activePlayers.count < Self.maxConcurrentSounds }
-
-    // 共享音频引擎：所有 SoundPlayer 的节点接入同一个 engine 的主混音器
-    private let engine = AVAudioEngine()
 
     private var interruptionObserver: NSObjectProtocol?
     private var routeChangeObserver: NSObjectProtocol?
@@ -54,6 +56,9 @@ final class AudioManager {
     // 环绕声运动
     private var surroundTimer: Foundation.Timer?
     private var surroundPhase: Double = 0
+
+    /// Now Playing 封面图片（锁屏展示用）
+    private var nowPlayingArtwork: UIImage?
 
     init() {
         if let raw = UserDefaults.standard.string(forKey: Self.spatialModeKey),
@@ -76,11 +81,15 @@ final class AudioManager {
         activePlayers.contains { $0.sound.id == sound.id }
     }
 
-    func toggle(_ sound: SoundItem) {
+    /// 切换声音的播放/停止状态。返回 false 表示"新增播放"失败（音频文件缺失等），
+    /// 调用方可据此向用户展示提示，而不是让卡片停留在"点击无反馈"的状态。
+    @discardableResult
+    func toggle(_ sound: SoundItem) -> Bool {
         if isPlaying(sound) {
             removeSound(sound)
+            return true
         } else {
-            addSound(sound, volume: 0.7)
+            return addSound(sound, volume: 0.7)
         }
     }
 
@@ -92,20 +101,31 @@ final class AudioManager {
         updateNowPlayingInfo()
     }
 
-    func addSound(_ sound: SoundItem, volume: Float = 0.7) {
-        guard canAddMore else { return }
-        let player = SoundPlayer(sound: sound, engine: engine)
+    @discardableResult
+    func addSound(_ sound: SoundItem, volume: Float = 0.7) -> Bool {
+        guard canAddMore else { return false }
+        let player = SoundPlayer(sound: sound)
         player.volume = volume
+        let started = player.start(effectiveVolume: volume * masterVolume)
+        guard started else {
+            // 播放失败（文件缺失/AVAudioPlayer 初始化失败等）：不把这个"僵尸"
+            // player 计入 activePlayers，否则会出现卡片显示已选中、
+            // 但实际未播放、MiniPlayerBar 状态与音频状态不一致的问题。
+            return false
+        }
         activePlayers.append(player)
-        player.start(effectiveVolume: volume * masterVolume)
         applySpatialLayout()
         updateNowPlayingInfo()
+        return true
     }
 
     func stopAll() {
         for player in activePlayers { player.stop() }
         activePlayers.removeAll()
         isPaused = false
+        currentSceneID = nil
+        currentSceneName = nil
+        nowPlayingArtwork = nil
         stopSurroundMotion()
         updateNowPlayingInfo()
     }
@@ -160,6 +180,19 @@ final class AudioManager {
             player.resumeIfNeeded()
             player.updateVolume(player.volume * masterVolume)
         }
+        updateNowPlayingInfo()
+    }
+
+    /// 强制恢复：无视 isPaused 状态，确保中断后能恢复。
+    private func forceResumeAll() {
+        guard !activePlayers.isEmpty else { return }
+        isPaused = false
+        AudioSessionConfig.configure()
+        for player in activePlayers {
+            player.resumeIfNeeded()
+            player.updateVolume(player.volume * masterVolume)
+        }
+        updateNowPlayingInfo()
     }
 
     func playerFor(_ sound: SoundItem) -> SoundPlayer? {
@@ -238,21 +271,52 @@ final class AudioManager {
         }
     }
 
+    // MARK: - 场景封面管理
+
+    /// 设置当前场景信息，用于锁屏 Now Playing 封面展示。
+    /// 传入 nil 可清除场景封面。
+    func setCurrentScene(id: String?, name: String?, artwork: UIImage?) {
+        currentSceneID = id
+        currentSceneName = name
+        nowPlayingArtwork = artwork
+        updateNowPlayingInfo()
+    }
+
     // MARK: - Now Playing
 
     func updateNowPlayingInfo() {
         #if os(iOS)
         var info: [String: Any] = [:]
-        info[MPMediaItemPropertyArtist] = "清籁"
-        info[MPMediaItemPropertyPlaybackDuration] = 0
 
         if activePlayers.isEmpty {
             info[MPMediaItemPropertyTitle] = "清籁"
+            info[MPMediaItemPropertyArtist] = "清籁"
             info[MPNowPlayingInfoPropertyPlaybackRate] = 0.0
         } else {
-            info[MPMediaItemPropertyTitle] = activePlayers.prefix(3).map { $0.sound.name }.joined(separator: " · ")
+            // 标题：使用场景名称（如果有），否则显示声音名称
+            if let sceneName = currentSceneName {
+                info[MPMediaItemPropertyTitle] = sceneName
+                info[MPMediaItemPropertyArtist] = "清籁 · 声音场景"
+            } else {
+                info[MPMediaItemPropertyTitle] = activePlayers.prefix(3).map { $0.sound.name }.joined(separator: " · ")
+                info[MPMediaItemPropertyArtist] = "清籁"
+            }
             info[MPNowPlayingInfoPropertyPlaybackRate] = isPaused ? 0.0 : 1.0
         }
+
+        // 播放时长设为 0 表示无限循环
+        info[MPMediaItemPropertyPlaybackDuration] = 0
+        info[MPNowPlayingInfoPropertyIsLiveStream] = true
+
+        // 锁屏封面图片：优先使用场景缩略图，否则使用 App 图标
+        if let artwork = nowPlayingArtwork {
+            let mpArtwork = MPMediaItemArtwork(boundsSize: artwork.size) { _ in artwork }
+            info[MPMediaItemPropertyArtwork] = mpArtwork
+        } else if let appIcon = UIImage(named: "AppIcon") {
+            let mpArtwork = MPMediaItemArtwork(boundsSize: appIcon.size) { _ in appIcon }
+            info[MPMediaItemPropertyArtwork] = mpArtwork
+        }
+
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
         #endif
     }
@@ -263,7 +327,9 @@ final class AudioManager {
         #if os(iOS)
         interruptionObserver = NotificationCenter.default.addObserver(forName: AVAudioSession.interruptionNotification, object: nil, queue: .main) { [weak self] n in self?.handleInterruption(n) }
         routeChangeObserver = NotificationCenter.default.addObserver(forName: AVAudioSession.routeChangeNotification, object: nil, queue: .main) { [weak self] n in self?.handleRouteChange(n) }
-        mediaServicesResetObserver = NotificationCenter.default.addObserver(forName: AVAudioSession.mediaServicesWereResetNotification, object: nil, queue: .main) { [weak self] _ in self?.resumeAll() }
+        mediaServicesResetObserver = NotificationCenter.default.addObserver(forName: AVAudioSession.mediaServicesWereResetNotification, object: nil, queue: .main) { [weak self] _ in
+            self?.resumeAll()
+        }
         setupRemoteCommands()
         #endif
     }
@@ -282,19 +348,33 @@ final class AudioManager {
         }
         center.stopCommand.isEnabled = true
         center.stopCommand.addTarget { [weak self] _ in self?.stopAll(); return .success }
-        center.skipForwardCommand.preferredIntervals = [10]
-        center.skipForwardCommand.isEnabled = true
-        center.skipForwardCommand.addTarget { _ in .success }
-        center.skipBackwardCommand.preferredIntervals = [10]
-        center.skipBackwardCommand.isEnabled = true
-        center.skipBackwardCommand.addTarget { _ in .success }
+        center.togglePlayPauseCommand.isEnabled = true
+        center.togglePlayPauseCommand.addTarget { [weak self] _ in
+            self?.togglePlayPause(); return .success
+        }
     }
 
     private func handleInterruption(_ notification: Notification) {
         guard let userInfo = notification.userInfo,
               let typeValue = userInfo[AVAudioSessionInterruptionTypeKey] as? UInt,
               let type = AVAudioSession.InterruptionType(rawValue: typeValue) else { return }
-        if type == .ended { resumeAll() }
+
+        switch type {
+        case .began:
+            break  // 系统中断（电话、Siri 等），播放器会被系统自动暂停
+        case .ended:
+            // 中断结束，重新激活 session 并恢复播放
+            let shouldResume = (userInfo[AVAudioSessionInterruptionOptionKey] as? UInt)
+                .flatMap { AVAudioSession.InterruptionOptions(rawValue: $0) }
+                .map { $0.contains(.shouldResume) } ?? true
+            if shouldResume {
+                DispatchQueue.main.asyncAfter(deadline: .now() + 0.5) { [weak self] in
+                    self?.forceResumeAll()
+                }
+            }
+        @unknown default:
+            break
+        }
     }
 
     private func handleRouteChange(_ notification: Notification) {

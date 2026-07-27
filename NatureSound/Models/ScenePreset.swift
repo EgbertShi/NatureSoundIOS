@@ -76,6 +76,25 @@ extension ScenePreset {
         allPresets.first { $0.id == id }
     }
 
+    // MARK: - 场景匹配
+
+    /// 根据当前活跃声音 ID 集合，查找最佳匹配的预设场景。
+    /// 匹配规则：场景所有声音都在活跃列表中（活跃集合是场景声音集合的超集），
+    /// 优先返回声音数量最多的场景（最精确匹配）。
+    static func bestMatch(for activeSoundIDs: Set<String>) -> ScenePreset? {
+        var best: ScenePreset?
+        var bestCount = 0
+        for preset in allPresets {
+            let sceneSoundSet = Set(preset.soundIDs)
+            guard sceneSoundSet.isSubset(of: activeSoundIDs) else { continue }
+            if preset.soundIDs.count > bestCount {
+                best = preset
+                bestCount = preset.soundIDs.count
+            }
+        }
+        return best
+    }
+
     // MARK: - 场景配置加载
 
     private static func loadConfiguration() -> SceneConfiguration {

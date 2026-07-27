@@ -21,7 +21,7 @@ struct LoopingVideoPlayer: UIViewRepresentable {
     }
 
     func updateUIView(_ uiView: LoopingPlayerUIView, context: Context) {
-        uiView.switchTo(url: url)
+        uiView.switchTo(url: url, previewImage: previewImage)
         uiView.setPlaying(isActive)
     }
 
@@ -40,6 +40,7 @@ final class LoopingPlayerUIView: UIView {
     private var readyObservation: NSKeyValueObservation?
     private var itemObservation: NSKeyValueObservation?
     private var endObserver: NSObjectProtocol?
+    private var foregroundObserver: NSObjectProtocol?
     private var hasFadedIn = false
     private var wantsPlayback = false
 
@@ -50,6 +51,7 @@ final class LoopingPlayerUIView: UIView {
         setupPreviewImage(previewImage)
         setupPlayer(url: url)
         setPlaying(isActive)
+        observeForeground()
     }
 
     required init?(coder: NSCoder) {
@@ -63,8 +65,12 @@ final class LoopingPlayerUIView: UIView {
 
     // MARK: - 切换视频
 
-    func switchTo(url: URL) {
+    func switchTo(url: URL, previewImage: UIImage? = nil) {
         guard url != currentURL else { return }
+        // 先用新场景的缩略图替换旧的预览图，避免旧场景画面残留导致两个场景同时可见
+        if let previewImage {
+            setupPreviewImage(previewImage)
+        }
         setupPlayer(url: url)
         if wantsPlayback {
             player?.play()
@@ -92,12 +98,42 @@ final class LoopingPlayerUIView: UIView {
         itemObservation?.invalidate()
         itemObservation = nil
         removeEndObserver()
+        removeForegroundObserver()
         player?.pause()
         player = nil
         playerLayer?.removeFromSuperlayer()
         playerLayer = nil
         currentURL = nil
         hasFadedIn = false
+    }
+
+    // MARK: - 前后台切换
+
+    // App 从后台回到前台时，系统可能已经暂停了底层 AVPlayer（尤其是静音、
+    // 无画中画的视频层），仅恢复 SwiftUI body 求值并不会让已存在的
+    // AVPlayerLayer 重新播放，因此需要显式监听前台通知并按需重新 play()。
+    private func observeForeground() {
+        foregroundObserver = NotificationCenter.default.addObserver(
+            forName: UIApplication.willEnterForegroundNotification,
+            object: nil,
+            queue: .main
+        ) { [weak self] _ in
+            self?.resumeIfNeeded()
+        }
+    }
+
+    private func removeForegroundObserver() {
+        if let foregroundObserver {
+            NotificationCenter.default.removeObserver(foregroundObserver)
+            self.foregroundObserver = nil
+        }
+    }
+
+    private func resumeIfNeeded() {
+        guard wantsPlayback, let player else { return }
+        if player.timeControlStatus != .playing {
+            player.play()
+        }
     }
 
     // MARK: - 预览图

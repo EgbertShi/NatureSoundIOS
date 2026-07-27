@@ -16,7 +16,7 @@
       "description": "细雨、雷声与壁炉的温暖组合",
       "colorHex": "78909C",
       "soundIDs": ["rain", "thunderstorm", "fireplace"],
-      "volumes": {"rain": 0.8, "thunderstorm": 0.4, "fireplace": 0.6},
+      "volumes": {"rain": 0.75, "thunderstorm": 0.35, "fireplace": 0.45},
       "tags": ["专注", "放松"]
     },
     {
@@ -25,8 +25,8 @@
       "icon": "leaf.fill",
       "description": "溪流、鸟鸣与林风的深度放松",
       "colorHex": "66BB6A",
-      "soundIDs": ["stream", "songbird", "forest_wind", "zen_bell"],
-      "volumes": {"stream": 0.7, "songbird": 0.4, "forest_wind": 0.5, "zen_bell": 0.3},
+      "soundIDs": ["stream", "forest_wind", "songbird", "dry_leaves"],
+      "volumes": {"stream": 0.7, "forest_wind": 0.45, "songbird": 0.3, "dry_leaves": 0.15},
       "tags": ["放松", "自然"]
     },
     {
@@ -36,7 +36,7 @@
       "description": "海浪、清风与蟋蟀的静谧海岸",
       "colorHex": "0288D1",
       "soundIDs": ["shallow_waves", "cold_wind", "cricket"],
-      "volumes": {"shallow_waves": 0.8, "cold_wind": 0.4, "cricket": 0.3},
+      "volumes": {"shallow_waves": 0.8, "cold_wind": 0.35, "cricket": 0.25},
       "tags": ["助眠", "自然"]
     },
     {
@@ -46,7 +46,7 @@
       "description": "钟声、梵音与铜锣的冥想之境",
       "colorHex": "FFC107",
       "soundIDs": ["temple_bell", "mantra", "gong"],
-      "volumes": {"temple_bell": 0.5, "mantra": 0.5, "gong": 0.4},
+      "volumes": {"mantra": 0.65, "temple_bell": 0.35, "gong": 0.3},
       "tags": ["放松", "专注"]
     },
     {
@@ -56,7 +56,7 @@
       "description": "篝火、虫鸣与星空下的安宁",
       "colorHex": "FF7043",
       "soundIDs": ["campfire", "cricket", "night", "owl"],
-      "volumes": {"campfire": 0.8, "cricket": 0.4, "night": 0.5, "owl": 0.3},
+      "volumes": {"campfire": 0.75, "night": 0.4, "cricket": 0.3, "owl": 0.2},
       "tags": ["自然", "助眠"]
     },
     {
@@ -65,8 +65,8 @@
       "icon": "camera.macro",
       "description": "鸟语花香、溪流潺潺的清晨",
       "colorHex": "EC407A",
-      "soundIDs": ["garden_frog", "songbird", "stream", "chime"],
-      "volumes": {"garden_frog": 0.6, "songbird": 0.5, "stream": 0.5, "chime": 0.3},
+      "soundIDs": ["stream", "songbird", "garden_frog", "chime"],
+      "volumes": {"stream": 0.65, "songbird": 0.4, "garden_frog": 0.3, "chime": 0.2},
       "tags": ["自然", "放松"]
     },
     {
@@ -76,7 +76,7 @@
       "description": "白噪音与自然声的专注背景",
       "colorHex": "5C6BC0",
       "soundIDs": ["rain", "fireplace", "cold_wind"],
-      "volumes": {"rain": 0.6, "fireplace": 0.5, "cold_wind": 0.3},
+      "volumes": {"rain": 0.7, "fireplace": 0.35, "cold_wind": 0.25},
       "tags": ["专注"]
     },
     {
@@ -85,8 +85,8 @@
       "icon": "sun.max.fill",
       "description": "蝉鸣、微风中的慵懒时光",
       "colorHex": "DCE775",
-      "soundIDs": ["cicada", "forest_wind", "dry_leaves"],
-      "volumes": {"cicada": 0.5, "forest_wind": 0.6, "dry_leaves": 0.4},
+      "soundIDs": ["cicada", "forest_wind", "grass_sway"],
+      "volumes": {"forest_wind": 0.6, "cicada": 0.4, "grass_sway": 0.25},
       "tags": ["自然", "放松"]
     },
     {
@@ -96,7 +96,7 @@
       "description": "壁炉、风声与雪夜的温暖庇护",
       "colorHex": "90A4AE",
       "soundIDs": ["fireplace", "cold_wind", "snowfall"],
-      "volumes": {"fireplace": 0.8, "cold_wind": 0.3, "snowfall": 0.4},
+      "volumes": {"fireplace": 0.75, "snowfall": 0.35, "cold_wind": 0.25},
       "tags": ["助眠", "放松"]
     },
     {
@@ -105,8 +105,8 @@
       "icon": "mountain.2.fill",
       "description": "山洞回声与水滴的神秘地下世界",
       "colorHex": "7E57C2",
-      "soundIDs": ["cave_drip", "stream"],
-      "volumes": {"cave_drip": 0.7, "stream": 0.3},
+      "soundIDs": ["cave_drip", "stream", "night"],
+      "volumes": {"cave_drip": 0.7, "stream": 0.3, "night": 0.15},
       "tags": ["自然", "专注"]
     },
     {
@@ -115,8 +115,8 @@
       "icon": "sun.haze.fill",
       "description": "喷泉、鸟鸣与风铃的清新早晨",
       "colorHex": "4DD0E1",
-      "soundIDs": ["fountain", "songbird", "chime", "garden_frog"],
-      "volumes": {"fountain": 0.6, "songbird": 0.5, "chime": 0.3, "garden_frog": 0.4},
+      "soundIDs": ["fountain", "songbird", "chime", "forest_wind"],
+      "volumes": {"fountain": 0.7, "songbird": 0.35, "forest_wind": 0.2, "chime": 0.2},
       "tags": ["自然", "放松"]
     },
     {
@@ -126,7 +126,7 @@
       "description": "篝火、夜蛙与猫头鹰的浪漫夜晚",
       "colorHex": "5C6BC0",
       "soundIDs": ["campfire", "night_frog", "owl", "night"],
-      "volumes": {"campfire": 0.7, "night_frog": 0.5, "owl": 0.3, "night": 0.4},
+      "volumes": {"campfire": 0.65, "night": 0.35, "night_frog": 0.3, "owl": 0.2},
       "tags": ["助眠", "自然"]
     },
     {
@@ -136,7 +136,7 @@
       "description": "瀑布、铜锣与风声的力量冥想",
       "colorHex": "0097A7",
       "soundIDs": ["waterfall", "gong", "forest_wind"],
-      "volumes": {"waterfall": 0.7, "gong": 0.4, "forest_wind": 0.3},
+      "volumes": {"waterfall": 0.7, "gong": 0.3, "forest_wind": 0.2},
       "tags": ["放松", "自然"]
     },
     {
@@ -146,7 +146,7 @@
       "description": "细雨、炉火与风铃的慵懒午后",
       "colorHex": "8D6E63",
       "soundIDs": ["rain", "stove_crackle", "chime", "cold_wind"],
-      "volumes": {"rain": 0.6, "stove_crackle": 0.3, "chime": 0.2, "cold_wind": 0.3},
+      "volumes": {"rain": 0.65, "stove_crackle": 0.4, "cold_wind": 0.2, "chime": 0.15},
       "tags": ["专注", "放松"]
     },
     {
@@ -156,7 +156,7 @@
       "description": "鸟鸣、虫声与微风的乡村早晨",
       "colorHex": "9CCC65",
       "soundIDs": ["songbird", "garden_cricket", "grass_sway"],
-      "volumes": {"songbird": 0.5, "garden_cricket": 0.4, "grass_sway": 0.3},
+      "volumes": {"songbird": 0.55, "garden_cricket": 0.3, "grass_sway": 0.25},
       "tags": ["自然", "放松"]
     },
     {
@@ -166,7 +166,7 @@
       "description": "藏地梵音与铜锣的深度冥想",
       "colorHex": "FFB300",
       "soundIDs": ["tibetan_chant", "gong", "temple_bell"],
-      "volumes": {"tibetan_chant": 0.6, "gong": 0.4, "temple_bell": 0.3},
+      "volumes": {"tibetan_chant": 0.7, "gong": 0.35, "temple_bell": 0.25},
       "tags": ["放松", "专注"]
     },
     {
@@ -176,7 +176,7 @@
       "description": "蛙鸣、虫声与微风的夏夜乡野",
       "colorHex": "7CB342",
       "soundIDs": ["night_frog", "garden_cricket", "grass_sway"],
-      "volumes": {"night_frog": 0.5, "garden_cricket": 0.4, "grass_sway": 0.3},
+      "volumes": {"night_frog": 0.55, "garden_cricket": 0.3, "grass_sway": 0.2},
       "tags": ["自然", "助眠"]
     },
     {
@@ -186,7 +186,7 @@
       "description": "山泉、溪流与鸟鸣的山间清晨",
       "colorHex": "4DB6AC",
       "soundIDs": ["mountain_spring", "stream", "songbird"],
-      "volumes": {"mountain_spring": 0.7, "stream": 0.5, "songbird": 0.3},
+      "volumes": {"mountain_spring": 0.7, "stream": 0.4, "songbird": 0.25},
       "tags": ["自然", "放松"]
     },
     {
@@ -196,7 +196,7 @@
       "description": "暴雨雷鸣中的安心庇护",
       "colorHex": "546E7A",
       "soundIDs": ["thunderstorm", "heavy_rain", "fireplace"],
-      "volumes": {"thunderstorm": 0.6, "heavy_rain": 0.7, "fireplace": 0.5},
+      "volumes": {"heavy_rain": 0.75, "thunderstorm": 0.45, "fireplace": 0.3},
       "tags": ["助眠", "专注"]
     },
     {
@@ -205,8 +205,8 @@
       "icon": "moon.fill",
       "description": "热带雨林夜晚的丰富自然声",
       "colorHex": "2E7D32",
-      "soundIDs": ["tropical_rainforest", "night_frog", "cicada"],
-      "volumes": {"tropical_rainforest": 0.6, "night_frog": 0.4, "cicada": 0.3},
+      "soundIDs": ["tropical_rainforest", "night_frog", "insect_nocturne", "night"],
+      "volumes": {"tropical_rainforest": 0.65, "night_frog": 0.35, "insect_nocturne": 0.25, "night": 0.15},
       "tags": ["自然", "助眠"]
     }
   ]

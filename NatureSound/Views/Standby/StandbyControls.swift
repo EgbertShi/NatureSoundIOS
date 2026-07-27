@@ -100,7 +100,7 @@ struct StandbyMixer: View {
                 .frame(width: 24, alignment: .trailing)
             Button {
                 Haptics.light()
-                audioManager.removeSound(player.sound)
+                withAnimation(.spring(response: 0.3)) { audioManager.removeSound(player.sound) }
             } label: {
                 Image(systemName: "xmark.circle.fill")
                     .font(.system(size: 14))
@@ -662,7 +662,7 @@ struct StandbyToolBar: View {
     var body: some View {
         HStack(spacing: 0) {
             toolBtn(icon: "slider.horizontal.3", label: "混音器", on: showMixer, color: Color(hex: "667eea"), action: onToggleMixer)
-            toolBtn(icon: timerIsActive ? "timer.fill" : "timer", label: "定时", on: showTimer || timerIsActive, color: timerIsActive ? Color(hex: "FF6B6B") : Color(hex: "667eea"), action: onToggleTimer)
+            toolBtn(icon: "timer", label: "定时", on: showTimer || timerIsActive, color: timerIsActive ? Color(hex: "FF6B6B") : Color(hex: "667eea"), action: onToggleTimer)
             toolBtn(icon: "clock", label: "时钟", on: showClock, color: Color(hex: "667eea"), action: onToggleClock)
             toolBtn(icon: "star", label: "场景", on: showScene, color: Color(hex: "FFD54F"), action: onToggleScene)
         }
@@ -715,7 +715,11 @@ struct StandbyTopBar: View {
             }
             .buttonStyle(.plain)
 
-            Spacer()
+            if isLandscape {
+                Spacer().frame(width: 200)
+            } else {
+                Spacer()
+            }
 
             Button { Haptics.light(); onToggleOrientation() } label: {
                 Image(systemName: isLandscape ? "rectangle.portrait" : "rectangle.landscape.rotate")
@@ -735,8 +739,8 @@ struct StandbyTopBar: View {
             }
             .buttonStyle(.plain)
         }
-        .padding(.horizontal, isLandscape ? 12 : 20)
-        .padding(.top, isLandscape ? 4 : 8)
+        .padding(.horizontal, 20)
+        .padding(.top, 8)
         .transition(.move(edge: .top).combined(with: .opacity))
     }
 }

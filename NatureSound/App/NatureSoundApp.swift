@@ -12,6 +12,19 @@ import AVFoundation
 class AppDelegate: NSObject, UIApplicationDelegate {
     static var orientationLock: UIInterfaceOrientationMask = .portrait
 
+    func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]? = nil) -> Bool {
+        // 尽早配置 audio session，确保后台播放权限在最早时机激活
+        do {
+            let session = AVAudioSession.sharedInstance()
+            try session.setCategory(.playback, mode: .default, options: [])
+            try session.setActive(true)
+            print("[AppDelegate] ✅ audio session 配置成功: category=\(session.category.rawValue)")
+        } catch {
+            print("[AppDelegate] ❌ audio session 配置失败: \(error)")
+        }
+        return true
+    }
+
     func application(_ application: UIApplication, supportedInterfaceOrientationsFor window: UIWindow?) -> UIInterfaceOrientationMask {
         AppDelegate.orientationLock
     }
@@ -21,8 +34,6 @@ class AppDelegate: NSObject, UIApplicationDelegate {
 struct NatureSoundApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @AppStorage("hasSeenWelcome") private var hasSeenWelcome = false
-
-    init() { AudioSessionConfig.configure() }
 
     var body: some Scene {
         WindowGroup {

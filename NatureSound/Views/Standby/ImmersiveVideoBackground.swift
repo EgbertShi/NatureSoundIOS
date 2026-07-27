@@ -14,18 +14,13 @@ struct ImmersiveVideoBackground: View {
     let variantIndex: Int
     let variantCount: Int
     let videoManager: VideoManager
-    @State private var cacheVersion = 0
 
     var body: some View {
         ZStack {
-            // cacheVersion 作为隐形视图参与 body 求值，下载完成后触发刷新，
-            // 但不销毁已有图层（避免 .id 导致播放器重建闪烁）。
-            Color.clear
-                .frame(width: 0, height: 0)
-                .accessibilityHidden(true)
-                .id(cacheVersion)
-
-            // 所有已缓存版本同时存在，滑动仅切换 opacity
+            // 所有已缓存版本同时存在，滑动仅切换 opacity。
+            // videoLayer 内部读取了 videoManager 的缓存状态，
+            // 由于 VideoManager 现已标记为 @Observable，下载完成后会自动驱动本视图重新求值，
+            // 无需再依赖本地额外的版本计数器。
             ForEach(0..<variantCount, id: \.self) { idx in
                 videoLayer(variantIndex: idx)
                     .opacity(idx == variantIndex ? 1 : 0)
@@ -74,27 +69,23 @@ struct ImmersiveVideoBackground: View {
     }
 
     private func cacheAllVariants() async {
-        // 当前版本视频已在本地时无需触发刷新——首次 body 求值已包含所有已缓存视频。
-        // 仅在需要下载时才递增 cacheVersion，避免不必要的 body 重算导致播放器重建。
+        // 当前版本视频尚未本地缓存时，先下载缩略图再下载视频。
+        // VideoManager 内部在写盘成功后会递增其 @Observable 的 cacheVersion，
+        // 自动驱动本视图重新求值，无需再手动维护本地状态。
         if videoManager.cachedVideoURL(for: scene.id, variantIndex: variantIndex) == nil {
-            // 首次加载：先展示本地缓存的预览图，随后下载视频。
             await videoManager.cacheThumbnail(for: scene.id, variantIndex: variantIndex)
             guard !Task.isCancelled else { return }
-            await MainActor.run { cacheVersion += 1 }
-
             await videoManager.cacheAsset(for: scene.id, variantIndex: variantIndex)
             guard !Task.isCancelled else { return }
-            await MainActor.run { cacheVersion += 1 }
         }
 
-        // 预缓存其余视频；仅在新增缓存时触发刷新
+        // 预缓存其余视频
         for idx in 0..<variantCount where idx != variantIndex {
             guard !Task.isCancelled else { break }
             let existedBefore = videoManager.cachedVideoURL(for: scene.id, variantIndex: idx) != nil
             if !existedBefore {
                 await videoManager.cacheAsset(for: scene.id, variantIndex: idx)
                 guard !Task.isCancelled else { break }
-                await MainActor.run { cacheVersion += 1 }
             }
         }
     }

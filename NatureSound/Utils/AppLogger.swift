@@ -17,11 +17,11 @@ enum AppLogger {
 
     // MARK: 各模块 Logger 实例
 
-    static let weather    = Logger(subsystem: subsystem, category: "Weather")
-    static let audio      = Logger(subsystem: subsystem, category: "Audio")
-    static let video      = Logger(subsystem: subsystem, category: "Video")
-    static let timer      = Logger(subsystem: subsystem, category: "Timer")
-    static let scene      = Logger(subsystem: subsystem, category: "Scene")
-    static let liveActivity = Logger(subsystem: subsystem, category: "LiveActivity")
-    static let general    = Logger(subsystem: subsystem, category: "General")
+    static let weather        = Logger(subsystem: subsystem, category: "Weather")
+    static let audio          = Logger(subsystem: subsystem, category: "Audio")
+    static let video          = Logger(subsystem: subsystem, category: "Video")
+    static let timer          = Logger(subsystem: subsystem, category: "Timer")
+    static let scene          = Logger(subsystem: subsystem, category: "Scene")
+    static let liveActivity   = Logger(subsystem: subsystem, category: "LiveActivity")
+    static let general        = Logger(subsystem: subsystem, category: "General")
 }

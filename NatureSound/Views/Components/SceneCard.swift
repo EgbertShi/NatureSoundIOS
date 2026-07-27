@@ -12,19 +12,18 @@ struct FeaturedSceneCard: View {
     let preset: ScenePreset
     let videoManager: VideoManager
     let onTap: () -> Void
-    @State private var thumbnailCached = false
 
     var body: some View {
         Button(action: onTap) {
             ZStack(alignment: .bottomLeading) {
-                // 背景缩略图或渐变
+                // 背景缩略图；无缩略图时使用当前时段氛围图兜底
                 if let image = videoManager.cachedThumbnailImage(for: preset.id, variantIndex: 0) {
                     Image(uiImage: image)
                         .resizable()
                         .scaledToFill()
                         .clipped()
                 } else {
-                    gradientBackground
+                    fallbackBackground
                 }
 
                 // 全屏渐变遮罩，保证文字可读性
@@ -74,16 +73,22 @@ struct FeaturedSceneCard: View {
         }
         .buttonStyle(.plain)
         .task(id: preset.id) {
+            // VideoManager 现已标记为 @Observable，缓存写入成功后会自动驱动本视图重新求值，
+            // 无需再依赖本地额外的 dirty-flag 状态。
             await videoManager.cacheThumbnail(for: preset.id)
-            thumbnailCached = true
         }
     }
 
-    private var gradientBackground: some View {
-        LinearGradient(
-            colors: [preset.color, preset.color.opacity(0.6)],
-            startPoint: .topLeading, endPoint: .bottomTrailing
-        )
+    /// 缩略图未加载时的兜底背景：使用当前时段的氛围图片，
+    /// 与首页 AmbianceCard 的背景保持视觉一致。
+    private var fallbackBackground: some View {
+        Image(DayPeriod.current().ambianceImageName)
+            .resizable()
+            .scaledToFill()
+            .overlay(
+                // 叠加场景主题色遮罩，保留场景辨识度
+                preset.color.opacity(0.3)
+            )
     }
 }
 

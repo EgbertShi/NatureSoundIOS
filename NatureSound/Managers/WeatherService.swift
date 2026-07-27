@@ -189,6 +189,10 @@ final class WeatherService: NSObject, CLLocationManagerDelegate {
     private var lastFetchDate: Date?
     private let locationManager = CLLocationManager()
 
+    /// 定位请求失败后的重试次数（例如首次安装刚授权时 GPS/网络尚未就绪导致的瞬时失败）
+    private var retryCount = 0
+    private static let maxRetryCount = 3
+
     // MARK: UserDefaults 缓存键
     private static let cacheKeyWeather = "WeatherService.cachedWeather"
     private static let cacheKeyTemp    = "WeatherService.cachedTemp"
@@ -240,6 +244,21 @@ final class WeatherService: NSObject, CLLocationManagerDelegate {
 
     func locationManager(_ manager: CLLocationManager, didFailWithError error: Error) {
         AppLogger.weather.error("定位失败: \(error.localizedDescription)")
+        // 首次安装刚授权时，GPS/网络可能尚未就绪，导致首次定位请求瞬时失败。
+        // 此处做有限次数的自动重试，避免用户需要手动切换 App 才能触发下一次获取。
+        guard retryCount < Self.maxRetryCount else {
+            AppLogger.weather.warning("已达到最大重试次数 (\(Self.maxRetryCount))，不再重试")
+            return
+        }
+        let status = manager.authorizationStatus
+        guard status == .authorizedWhenInUse || status == .authorizedAlways else { return }
+        retryCount += 1
+        let delaySeconds = retryCount * 2
+        AppLogger.weather.notice("\(delaySeconds)s 后重试定位（第 \(self.retryCount) 次）")
+        Task { @MainActor [weak self] in
+            try? await Task.sleep(nanoseconds: UInt64(delaySeconds) * 1_000_000_000)
+            self?.locationManager.requestLocation()
+        }
     }
 
     func locationManagerDidChangeAuthorization(_ manager: CLLocationManager) {
@@ -295,6 +314,7 @@ final class WeatherService: NSObject, CLLocationManagerDelegate {
                 self.currentWeather = condition
                 self.temperature = temp
                 self.lastFetchDate = .now
+                self.retryCount = 0
                 self.persistWeather()
             }
         } catch {

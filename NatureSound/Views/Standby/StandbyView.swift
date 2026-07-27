@@ -26,8 +26,11 @@ struct StandbyView: View {
     @Binding var isPresented: Bool
 
     @StateObject private var orientationManager = OrientationManager()
-    @State private var selectedSceneID: String?
-    @State private var selectedVideoVariant = 0
+    @AppStorage("standby_selectedSceneID") private var selectedSceneID: String?
+    @AppStorage("standby_selectedVideoVariant") private var selectedVideoVariant = 0
+    /// 初始化标志：在 selectInitialScene() 完成前不渲染场景视频，
+    /// 避免用 @AppStorage 中残留的旧场景 ID 渲染了错误场景的视频。
+    @State private var hasInitialized = false
 
     // 亮度
     @State private var brightness: Double = Double(UIScreen.main.brightness)
@@ -137,6 +140,8 @@ struct StandbyView: View {
             UIApplication.shared.isIdleTimerDisabled = true
             startClockTimer()
             selectInitialScene()
+            // 场景初始化完成后才允许渲染视频背景
+            hasInitialized = true
         }
         .onDisappear {
             UIApplication.shared.isIdleTimerDisabled = false
@@ -144,15 +149,13 @@ struct StandbyView: View {
             UIScreen.main.brightness = CGFloat(originalBrightness)
             orientationManager.restorePortrait()
         }
-        .onChange(of: timerManager.isActive) { _, isActive in
-            if !isActive { isPresented = false }
-        }
     }
 
     // MARK: - 背景层
     private var backgroundLayer: some View {
         Group {
-            if let selectedScene {
+            // 初始化完成且场景有效时才渲染视频，避免旧场景视频闪烁
+            if hasInitialized, let selectedScene {
                 ImmersiveVideoBackground(
                     scene: selectedScene,
                     variantIndex: selectedVideoVariant,
@@ -351,7 +354,10 @@ struct StandbyView: View {
                 isLandscape: isLandscape,
                 onStartTimer: { minutes in
                     timerManager.selectedMinutes = minutes
-                    timerManager.start { audioManager.stopAll(); isPresented = false }
+                    timerManager.start {
+                        withAnimation(.spring(response: 0.4)) { audioManager.stopAll() }
+                        isPresented = false
+                    }
                 },
                 onCancelTimer: { timerManager.stop() },
                 onAddTime: addTime,
@@ -426,10 +432,61 @@ struct StandbyView: View {
     }
 
     private func selectInitialScene() {
-        guard selectedSceneID == nil else { return }
-        let activeSoundIDs = Set(audioManager.activePlayers.map { $0.sound.id })
-        selectedSceneID = videoScenes.first(where: { Set($0.soundIDs) == activeSoundIDs })?.id ?? videoScenes.first?.id
-        selectedVideoVariant = 0
+        // 与 AmbianceCard.matchedScene 保持完全相同的场景选择逻辑，确保两端同步
+        // 1. 优先使用 AudioManager 记录的当前场景
+        // 2. 回退到 bestMatch（子集匹配，与 AmbianceCard 一致）
+        // 3. 都不匹配时，保持持久化值或选第一个有视频的场景
+        let effectiveSceneID: String? = {
+            if let currentID = audioManager.currentSceneID,
+               videoScenes.contains(where: { $0.id == currentID }) {
+                return currentID
+            }
+            if audioManager.activeCount > 0 {
+                let activeIDs = Set(audioManager.activePlayers.map { $0.sound.id })
+                if let scene = ScenePreset.bestMatch(for: activeIDs),
+                   videoManager.hasAsset(for: scene.id) {
+                    return scene.id
+                }
+            }
+            return nil
+        }()
+
+        if let effectiveID = effectiveSceneID {
+            if selectedSceneID != effectiveID {
+                // 场景变了（用户从外部切换了场景或声音组合变化），重置变体
+                selectedSceneID = effectiveID
+                selectedVideoVariant = 0
+            }
+            // 场景没变时，保持持久化的视频变体
+        } else if selectedSceneID == nil || !videoScenes.contains(where: { $0.id == selectedSceneID! }) {
+            // 无法匹配到有效场景且持久化值无效，回退到第一个有视频的场景
+            selectedSceneID = videoScenes.first?.id
+            selectedVideoVariant = 0
+        }
+
+        // 视频变体越界保护
+        if videoVariantCount > 0 && selectedVideoVariant >= videoVariantCount {
+            selectedVideoVariant = 0
+        }
+        // 同步场景信息到 Now Playing，用于锁屏封面展示
+        updateNowPlayingScene()
+    }
+
+    /// 将当前选中的场景信息同步到 AudioManager 的 Now Playing。
+    private func updateNowPlayingScene() {
+        guard let scene = selectedScene else { return }
+        let artwork = videoManager.nowPlayingArtwork(for: scene.id, variantIndex: selectedVideoVariant)
+        audioManager.setCurrentScene(id: scene.id, name: scene.name, artwork: artwork)
+        // 如果本地没有缩略图缓存，异步下载后更新
+        if artwork == nil {
+            Task {
+                if let image = await videoManager.fetchNowPlayingArtwork(for: scene.id, variantIndex: selectedVideoVariant) {
+                    await MainActor.run {
+                        audioManager.setCurrentScene(id: scene.id, name: scene.name, artwork: image)
+                    }
+                }
+            }
+        }
     }
 
     private func switchVideoVariant(forward: Bool) {
@@ -439,6 +496,7 @@ struct StandbyView: View {
             : (selectedVideoVariant - 1 + videoVariantCount) % videoVariantCount
         Haptics.light()
         selectedVideoVariant = nextVariant
+        updateNowPlayingScene()
     }
 
     private func toggleOrientation() { orientationManager.toggle() }
