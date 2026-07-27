@@ -113,12 +113,7 @@ struct MyScenesPage: View {
     private func applyUserScene(_ scene: UserScene) {
         Haptics.medium()
         withAnimation(.spring(response: 0.4)) {
-            audioManager.stopAll()
-            for soundID in scene.soundIDs {
-                if let sound = SoundItem.allSounds.first(where: { $0.id == soundID }) {
-                    audioManager.addSound(sound, volume: scene.volumes[soundID] ?? 0.7)
-                }
-            }
+            ScenePlaybackCoordinator(audioManager: audioManager).apply(scene)
         }
     }
 }

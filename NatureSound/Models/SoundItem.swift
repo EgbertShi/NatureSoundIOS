@@ -47,10 +47,6 @@ struct SoundItem: Identifiable, Hashable {
     let description: String
     let fileName: String
 
-    /// 保留用于兼容 AudioSynthesis（已不再使用，仅为编译通过）
-    let baseFrequency: Double
-    let harmonics: [Double]
-
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
     static func == (lhs: SoundItem, rhs: SoundItem) -> Bool { lhs.id == rhs.id }
 }
@@ -74,8 +70,6 @@ private struct SoundItemConfiguration: Decodable {
     let color: String
     let description: String
     let fileName: String
-    let baseFrequency: Double
-    let harmonics: [Double]
 }
 
 // MARK: - 声音配置库
@@ -96,9 +90,7 @@ private enum SoundLibrary {
                 category: category,
                 color: Color(hex: item.color),
                 description: item.description,
-                fileName: item.fileName,
-                baseFrequency: item.baseFrequency,
-                harmonics: item.harmonics
+                fileName: item.fileName
             )
         }
     }

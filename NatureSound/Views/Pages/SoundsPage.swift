@@ -91,24 +91,7 @@ struct SoundsPage: View {
 
     private func applyScene(_ scene: ScenePreset) {
         withAnimation(.spring(response: 0.4)) {
-            audioManager.stopAll()
-            for soundID in scene.soundIDs {
-                if let sound = SoundItem.allSounds.first(where: { $0.id == soundID }) {
-                    audioManager.addSound(sound, volume: scene.volumes[soundID] ?? 0.7)
-                }
-            }
-        }
-        // 设置场景信息，用于锁屏 Now Playing 封面展示
-        let artwork = videoManager.nowPlayingArtwork(for: scene.id)
-        audioManager.setCurrentScene(id: scene.id, name: scene.name, artwork: artwork)
-        if artwork == nil {
-            Task {
-                if let image = await videoManager.fetchNowPlayingArtwork(for: scene.id) {
-                    await MainActor.run {
-                        audioManager.setCurrentScene(id: scene.id, name: scene.name, artwork: image)
-                    }
-                }
-            }
+            ScenePlaybackCoordinator(audioManager: audioManager, videoManager: videoManager).apply(scene)
         }
     }
 

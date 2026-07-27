@@ -28,14 +28,7 @@
           "icon": "drop.fill",
           "color": "4FC3F7",
           "description": "清澈的溪水潺潺流过鹅卵石",
-          "fileName": "潺潺溪水",
-          "baseFrequency": 220.0,
-          "harmonics": [
-            1.0,
-            0.5,
-            0.25,
-            0.12
-          ]
+          "fileName": "潺潺溪水"
         },
         {
           "id": "shallow_waves",
@@ -43,14 +36,7 @@
           "icon": "water.waves",
           "color": "0288D1",
           "description": "海浪轻柔地拍打着沙滩",
-          "fileName": "浅滩海浪",
-          "baseFrequency": 110.0,
-          "harmonics": [
-            1.0,
-            0.7,
-            0.4,
-            0.2
-          ]
+          "fileName": "浅滩海浪"
         },
         {
           "id": "waterfall",
@@ -58,15 +44,7 @@
           "icon": "arrow.down.to.line",
           "color": "0097A7",
           "description": "磅礴的瀑布从高处倾泻而下",
-          "fileName": "莱茵瀑布",
-          "baseFrequency": 165.0,
-          "harmonics": [
-            1.0,
-            0.8,
-            0.6,
-            0.4,
-            0.2
-          ]
+          "fileName": "莱茵瀑布"
         },
         {
           "id": "fountain",
@@ -74,13 +52,7 @@
           "icon": "drop.degreesign.fill",
           "color": "4DD0E1",
           "description": "花园中喷泉的水花跳跃声",
-          "fileName": "喷泉涟漪",
-          "baseFrequency": 330.0,
-          "harmonics": [
-            1.0,
-            0.3,
-            0.15
-          ]
+          "fileName": "喷泉涟漪"
         },
         {
           "id": "cave_drip",
@@ -88,13 +60,7 @@
           "icon": "drop.degreesign.fill",
           "color": "80DEEA",
           "description": "山洞中水滴清脆回响",
-          "fileName": "山洞滴水",
-          "baseFrequency": 880.0,
-          "harmonics": [
-            1.0,
-            0.2,
-            0.05
-          ]
+          "fileName": "山洞滴水"
         },
         {
           "id": "mountain_spring",
@@ -102,13 +68,7 @@
           "icon": "drop.fill",
           "color": "4DB6AC",
           "description": "山间清泉汩汩涌出",
-          "fileName": "山泉汩汩",
-          "baseFrequency": 280.0,
-          "harmonics": [
-            1.0,
-            0.4,
-            0.2
-          ]
+          "fileName": "山泉汩汩"
         },
         {
           "id": "river_stone",
@@ -116,13 +76,7 @@
           "icon": "drop.fill",
           "color": "26C6DA",
           "description": "河水轻抚河石的低吟",
-          "fileName": "河石浅唱",
-          "baseFrequency": 200.0,
-          "harmonics": [
-            1.0,
-            0.5,
-            0.3
-          ]
+          "fileName": "河石浅唱"
         },
         {
           "id": "creek_stone",
@@ -130,13 +84,7 @@
           "icon": "drop.fill",
           "color": "42A5F5",
           "description": "溪水在石间流淌",
-          "fileName": "溪石流淌",
-          "baseFrequency": 240.0,
-          "harmonics": [
-            1.0,
-            0.6,
-            0.3
-          ]
+          "fileName": "溪石流淌"
         },
         {
           "id": "flying_waterfall",
@@ -144,14 +92,7 @@
           "icon": "arrow.down.to.line",
           "color": "00ACC1",
           "description": "飞瀑如泉般流淌而下",
-          "fileName": "飞瀑流泉",
-          "baseFrequency": 180.0,
-          "harmonics": [
-            1.0,
-            0.7,
-            0.4,
-            0.2
-          ]
+          "fileName": "飞瀑流泉"
         }
       ]
     },
@@ -165,14 +106,7 @@
           "icon": "cloud.rain.fill",
           "color": "78909C",
           "description": "窗外下着淅淅沥沥的小雨",
-          "fileName": "细雨绵绵",
-          "baseFrequency": 200.0,
-          "harmonics": [
-            1.0,
-            0.6,
-            0.3,
-            0.15
-          ]
+          "fileName": "细雨绵绵"
         },
         {
           "id": "thunderstorm",
@@ -180,15 +114,7 @@
           "icon": "cloud.bolt.fill",
           "color": "546E7A",
           "description": "暴雨与雷电交加的震撼",
-          "fileName": "暴雨雷鸣",
-          "baseFrequency": 55.0,
-          "harmonics": [
-            1.0,
-            0.9,
-            0.7,
-            0.5,
-            0.3
-          ]
+          "fileName": "暴雨雷鸣"
         },
         {
           "id": "cold_wind",
@@ -196,13 +122,7 @@
           "icon": "wind",
           "color": "90A4AE",
           "description": "寒风呼啸穿过大地",
-          "fileName": "凛冽寒风",
-          "baseFrequency": 150.0,
-          "harmonics": [
-            1.0,
-            0.5,
-            0.3
-          ]
+          "fileName": "凛冽寒风"
         },
         {
           "id": "snowfall",
@@ -210,13 +130,7 @@
           "icon": "snowflake",
           "color": "CFD8DC",
           "description": "雪花簌簌飘落在寂静的夜晚",
-          "fileName": "冬日飘雪",
-          "baseFrequency": 3000.0,
-          "harmonics": [
-            1.0,
-            0.1,
-            0.02
-          ]
+          "fileName": "冬日飘雪"
         },
         {
           "id": "blizzard",
@@ -224,13 +138,7 @@
           "icon": "snowflake.circle",
           "color": "B0BEC5",
           "description": "暴风雪中的深夜",
-          "fileName": "暴风雪夜",
-          "baseFrequency": 1200.0,
-          "harmonics": [
-            1.0,
-            0.4,
-            0.1
-          ]
+          "fileName": "暴风雪夜"
         },
         {
           "id": "heavy_rain",
@@ -238,14 +146,7 @@
           "icon": "cloud.heavyrain.fill",
           "color": "455A64",
           "description": "猛烈的暴风雨倾盆而下",
-          "fileName": "暴风骤雨",
-          "baseFrequency": 180.0,
-          "harmonics": [
-            1.0,
-            0.8,
-            0.5,
-            0.2
-          ]
+          "fileName": "暴风骤雨"
         },
         {
           "id": "tent_rain",
@@ -253,13 +154,7 @@
           "icon": "tent.2.fill",
           "color": "607D8B",
           "description": "雨滴敲打帐篷的声音",
-          "fileName": "雨打帐篷",
-          "baseFrequency": 400.0,
-          "harmonics": [
-            1.0,
-            0.3,
-            0.1
-          ]
+          "fileName": "雨打帐篷"
         }
       ]
     },
@@ -273,13 +168,7 @@
           "icon": "bird.fill",
           "color": "FFB74D",
           "description": "清晨鸟儿婉转悠扬的歌声",
-          "fileName": "鸟鸣啁啾",
-          "baseFrequency": 1760.0,
-          "harmonics": [
-            1.0,
-            0.5,
-            0.25
-          ]
+          "fileName": "鸟鸣啁啾"
         },
         {
           "id": "owl",
@@ -287,13 +176,7 @@
           "icon": "moon.stars.fill",
           "color": "8D6E63",
           "description": "夜晚森林深处猫头鹰的低鸣",
-          "fileName": "猫头鹰语",
-          "baseFrequency": 440.0,
-          "harmonics": [
-            1.0,
-            0.6,
-            0.3
-          ]
+          "fileName": "猫头鹰语"
         },
         {
           "id": "seagull",
@@ -301,13 +184,7 @@
           "icon": "bird",
           "color": "FFE082",
           "description": "海鸥在碧蓝海面上的鸣叫",
-          "fileName": "海鸥翱翔",
-          "baseFrequency": 2200.0,
-          "harmonics": [
-            1.0,
-            0.4,
-            0.15
-          ]
+          "fileName": "海鸥翱翔"
         },
         {
           "id": "cuckoo",
@@ -315,13 +192,7 @@
           "icon": "leaf.arrow.circlepath",
           "color": "A1887F",
           "description": "春天田野里布谷鸟的啼叫",
-          "fileName": "布谷啼春",
-          "baseFrequency": 1320.0,
-          "harmonics": [
-            1.0,
-            0.5,
-            0.2
-          ]
+          "fileName": "布谷啼春"
         },
         {
           "id": "crow",
@@ -329,13 +200,7 @@
           "icon": "bird.fill",
           "color": "5D4037",
           "description": "乌鸦在荒野中的叫声",
-          "fileName": "乌鸦哀啼",
-          "baseFrequency": 350.0,
-          "harmonics": [
-            1.0,
-            0.6,
-            0.3
-          ]
+          "fileName": "乌鸦哀啼"
         },
         {
           "id": "eagle",
@@ -343,13 +208,7 @@
           "icon": "bird.fill",
           "color": "6D4C41",
           "description": "苍鹰在高空长鸣",
-          "fileName": "苍鹰长鸣",
-          "baseFrequency": 880.0,
-          "harmonics": [
-            1.0,
-            0.5,
-            0.2
-          ]
+          "fileName": "苍鹰长鸣"
         },
         {
           "id": "rooster",
@@ -357,13 +216,7 @@
           "icon": "sun.haze.fill",
           "color": "FFA726",
           "description": "清晨雄鸡啼鸣报晓",
-          "fileName": "雄鸡报晓",
-          "baseFrequency": 1200.0,
-          "harmonics": [
-            1.0,
-            0.4,
-            0.15
-          ]
+          "fileName": "雄鸡报晓"
         },
         {
           "id": "pigeon",
@@ -371,13 +224,7 @@
           "icon": "bird.fill",
           "color": "90A4AE",
           "description": "鸽子温柔的咕咕声",
-          "fileName": "鸽声咕咕",
-          "baseFrequency": 500.0,
-          "harmonics": [
-            1.0,
-            0.5,
-            0.2
-          ]
+          "fileName": "鸽声咕咕"
         },
         {
           "id": "blackbird",
@@ -385,13 +232,7 @@
           "icon": "bird.fill",
           "color": "424242",
           "description": "黑鸟婉转动听的歌声",
-          "fileName": "黑鸟歌声",
-          "baseFrequency": 1600.0,
-          "harmonics": [
-            1.0,
-            0.5,
-            0.25
-          ]
+          "fileName": "黑鸟歌声"
         }
       ]
     },
@@ -405,13 +246,7 @@
           "icon": "ant.fill",
           "color": "AED581",
           "description": "夏夜草丛中蟋蟀的鸣唱",
-          "fileName": "蟋蟀夜曲",
-          "baseFrequency": 4000.0,
-          "harmonics": [
-            1.0,
-            0.3,
-            0.1
-          ]
+          "fileName": "蟋蟀夜曲"
         },
         {
           "id": "cicada",
@@ -419,13 +254,7 @@
           "icon": "sun.max.fill",
           "color": "DCE775",
           "description": "正午树上此起彼伏的蝉鸣",
-          "fileName": "蝉鸣盛夏",
-          "baseFrequency": 3500.0,
-          "harmonics": [
-            1.0,
-            0.5,
-            0.2
-          ]
+          "fileName": "蝉鸣盛夏"
         },
         {
           "id": "night_frog",
@@ -433,13 +262,7 @@
           "icon": "circle.fill",
           "color": "81C784",
           "description": "夏夜池塘边蛙声齐鸣",
-          "fileName": "夜蛙齐鸣",
-          "baseFrequency": 300.0,
-          "harmonics": [
-            1.0,
-            0.3,
-            0.1
-          ]
+          "fileName": "夜蛙齐鸣"
         },
         {
           "id": "insect_frog",
@@ -447,13 +270,7 @@
           "icon": "ant.fill",
           "color": "9CCC65",
           "description": "虫鸣与蛙声的交响曲",
-          "fileName": "虫蛙交响",
-          "baseFrequency": 800.0,
-          "harmonics": [
-            1.0,
-            0.4,
-            0.2
-          ]
+          "fileName": "虫蛙交响"
         },
         {
           "id": "pond_frog",
@@ -461,13 +278,7 @@
           "icon": "drop.fill",
           "color": "8BC34A",
           "description": "池塘边青蛙的鸣叫",
-          "fileName": "蛙鸣池塘",
-          "baseFrequency": 250.0,
-          "harmonics": [
-            1.0,
-            0.4,
-            0.1
-          ]
+          "fileName": "蛙鸣池塘"
         },
         {
           "id": "bee",
@@ -475,13 +286,7 @@
           "icon": "circle.fill",
           "color": "FDD835",
           "description": "蜜蜂采蜜时的嗡嗡声",
-          "fileName": "蜜蜂嗡嗡",
-          "baseFrequency": 2000.0,
-          "harmonics": [
-            1.0,
-            0.5,
-            0.2
-          ]
+          "fileName": "蜜蜂嗡嗡"
         },
         {
           "id": "flying_insect",
@@ -489,13 +294,7 @@
           "icon": "ant.fill",
           "color": "C0CA33",
           "description": "夏夜飞虫的嗡嗡声",
-          "fileName": "飞虫嗡嗡",
-          "baseFrequency": 1500.0,
-          "harmonics": [
-            1.0,
-            0.3,
-            0.1
-          ]
+          "fileName": "飞虫嗡嗡"
         }
       ]
     },
@@ -509,14 +308,7 @@
           "icon": "flame.fill",
           "color": "FF7043",
           "description": "野外篝火木柴燃烧的噼啪声",
-          "fileName": "林间篝火",
-          "baseFrequency": 180.0,
-          "harmonics": [
-            1.0,
-            0.7,
-            0.5,
-            0.3
-          ]
+          "fileName": "林间篝火"
         },
         {
           "id": "stove_crackle",
@@ -524,14 +316,7 @@
           "icon": "fireplace.fill",
           "color": "FF8A65",
           "description": "炉火噼啪作响的温暖",
-          "fileName": "炉火哔啵",
-          "baseFrequency": 140.0,
-          "harmonics": [
-            1.0,
-            0.6,
-            0.3,
-            0.15
-          ]
+          "fileName": "炉火哔啵"
         },
         {
           "id": "fireplace",
@@ -539,13 +324,7 @@
           "icon": "fireplace.fill",
           "color": "FFAB91",
           "description": "冬日壁炉里柴火温柔燃烧",
-          "fileName": "窗边壁炉",
-          "baseFrequency": 250.0,
-          "harmonics": [
-            1.0,
-            0.2,
-            0.05
-          ]
+          "fileName": "窗边壁炉"
         },
         {
           "id": "campfire_crackle",
@@ -553,13 +332,7 @@
           "icon": "flame.fill",
           "color": "FF6E40",
           "description": "营火噼啪作响的夜晚",
-          "fileName": "营火噼啪",
-          "baseFrequency": 200.0,
-          "harmonics": [
-            1.0,
-            0.5,
-            0.2
-          ]
+          "fileName": "营火噼啪"
         }
       ]
     },
@@ -573,15 +346,7 @@
           "icon": "bell.fill",
           "color": "FFD54F",
           "description": "悠远绵长的寺庙晨钟暮鼓",
-          "fileName": "古寺钟声",
-          "baseFrequency": 261.6,
-          "harmonics": [
-            1.0,
-            0.7,
-            0.5,
-            0.3,
-            0.15
-          ]
+          "fileName": "古寺钟声"
         },
         {
           "id": "mantra",
@@ -589,14 +354,7 @@
           "icon": "circle.circle.fill",
           "color": "FFCA28",
           "description": "低沉的梵音吟唱",
-          "fileName": "真言梵音",
-          "baseFrequency": 180.0,
-          "harmonics": [
-            1.0,
-            0.6,
-            0.4,
-            0.2
-          ]
+          "fileName": "真言梵音"
         },
         {
           "id": "zen_bell",
@@ -604,14 +362,7 @@
           "icon": "bell.fill",
           "color": "FFC107",
           "description": "编钟清脆悠远的鸣响",
-          "fileName": "禅意编钟",
-          "baseFrequency": 432.0,
-          "harmonics": [
-            1.0,
-            0.9,
-            0.7,
-            0.5
-          ]
+          "fileName": "禅意编钟"
         },
         {
           "id": "tibetan_chant",
@@ -619,14 +370,7 @@
           "icon": "circle.circle.fill",
           "color": "FFB300",
           "description": "藏地低沉的梵音吟唱",
-          "fileName": "藏地梵音",
-          "baseFrequency": 110.0,
-          "harmonics": [
-            1.0,
-            0.8,
-            0.6,
-            0.4
-          ]
+          "fileName": "藏地梵音"
         },
         {
           "id": "gong",
@@ -634,14 +378,7 @@
           "icon": "circle.fill",
           "color": "FFE082",
           "description": "铜锣敲击后持续的共鸣",
-          "fileName": "铜锣余韵",
-          "baseFrequency": 200.0,
-          "harmonics": [
-            1.0,
-            0.9,
-            0.7,
-            0.5
-          ]
+          "fileName": "铜锣余韵"
         },
         {
           "id": "chime",
@@ -649,13 +386,7 @@
           "icon": "wind",
           "color": "FFF176",
           "description": "微风吹动檐下风铃的清脆声",
-          "fileName": "风铃叮当",
-          "baseFrequency": 1046.0,
-          "harmonics": [
-            1.0,
-            0.5,
-            0.2
-          ]
+          "fileName": "风铃叮当"
         }
       ]
     },
@@ -669,14 +400,7 @@
           "icon": "tree.fill",
           "color": "66BB6A",
           "description": "清晨森林中的生机盎然",
-          "fileName": "森林清晨",
-          "baseFrequency": 300.0,
-          "harmonics": [
-            1.0,
-            0.5,
-            0.3,
-            0.15
-          ]
+          "fileName": "森林清晨"
         },
         {
           "id": "forest_wind",
@@ -684,14 +408,7 @@
           "icon": "leaf.fill",
           "color": "81C784",
           "description": "风穿过树林的沙沙声",
-          "fileName": "林风穿树",
-          "baseFrequency": 500.0,
-          "harmonics": [
-            1.0,
-            0.4,
-            0.2,
-            0.1
-          ]
+          "fileName": "林风穿树"
         },
         {
           "id": "forest_voice",
@@ -699,13 +416,7 @@
           "icon": "tree.fill",
           "color": "43A047",
           "description": "森林深处汇聚的自然之声",
-          "fileName": "森林之声",
-          "baseFrequency": 250.0,
-          "harmonics": [
-            1.0,
-            0.5,
-            0.3
-          ]
+          "fileName": "森林之声"
         },
         {
           "id": "branch_sway",
@@ -713,13 +424,7 @@
           "icon": "leaf.fill",
           "color": "7CB342",
           "description": "树枝在风中摇曳",
-          "fileName": "枝干摇曳",
-          "baseFrequency": 350.0,
-          "harmonics": [
-            1.0,
-            0.4,
-            0.2
-          ]
+          "fileName": "枝干摇曳"
         },
         {
           "id": "dry_leaves",
@@ -727,13 +432,7 @@
           "icon": "leaf.fill",
           "color": "A5D6A7",
           "description": "秋风吹过枯叶的簌簌声",
-          "fileName": "枯叶簌簌",
-          "baseFrequency": 400.0,
-          "harmonics": [
-            1.0,
-            0.3,
-            0.1
-          ]
+          "fileName": "枯叶簌簌"
         },
         {
           "id": "tree_fall",
@@ -741,13 +440,7 @@
           "icon": "tree.fill",
           "color": "558B2F",
           "description": "大树林中倾倒的声响",
-          "fileName": "大树倾倒",
-          "baseFrequency": 100.0,
-          "harmonics": [
-            1.0,
-            0.6,
-            0.3
-          ]
+          "fileName": "大树倾倒"
         },
         {
           "id": "tropical_rainforest",
@@ -755,13 +448,7 @@
           "icon": "leaf.fill",
           "color": "2E7D32",
           "description": "热带雨林中丰富的自然声",
-          "fileName": "热带雨林",
-          "baseFrequency": 280.0,
-          "harmonics": [
-            1.0,
-            0.5,
-            0.3
-          ]
+          "fileName": "热带雨林"
         }
       ]
     },
@@ -775,13 +462,7 @@
           "icon": "moon.stars.fill",
           "color": "5C6BC0",
           "description": "万籁俱寂的夜晚中微弱的自然声",
-          "fileName": "静谧星空",
-          "baseFrequency": 60.0,
-          "harmonics": [
-            1.0,
-            0.3,
-            0.1
-          ]
+          "fileName": "静谧星空"
         },
         {
           "id": "summer_frog",
@@ -789,13 +470,7 @@
           "icon": "moon.fill",
           "color": "7986CB",
           "description": "夏夜蛙声伴你入眠",
-          "fileName": "夏夜蛙鸣",
-          "baseFrequency": 200.0,
-          "harmonics": [
-            1.0,
-            0.4,
-            0.1
-          ]
+          "fileName": "夏夜蛙鸣"
         },
         {
           "id": "rural_night",
@@ -803,13 +478,7 @@
           "icon": "moon.stars.fill",
           "color": "5E35B1",
           "description": "乡间夜晚的宁静氛围",
-          "fileName": "乡野夜色",
-          "baseFrequency": 80.0,
-          "harmonics": [
-            1.0,
-            0.3,
-            0.1
-          ]
+          "fileName": "乡野夜色"
         },
         {
           "id": "short_night",
@@ -817,13 +486,7 @@
           "icon": "moon.fill",
           "color": "3F51B5",
           "description": "短暂夜晚的氛围声",
-          "fileName": "短夜氛围",
-          "baseFrequency": 100.0,
-          "harmonics": [
-            1.0,
-            0.3,
-            0.1
-          ]
+          "fileName": "短夜氛围"
         },
         {
           "id": "garden_frog",
@@ -831,13 +494,7 @@
           "icon": "leaf.circle.fill",
           "color": "9575CD",
           "description": "花园中青蛙的鸣叫",
-          "fileName": "花园蛙声",
-          "baseFrequency": 250.0,
-          "harmonics": [
-            1.0,
-            0.4,
-            0.2
-          ]
+          "fileName": "花园蛙声"
         },
         {
           "id": "garden_cricket",
@@ -845,13 +502,7 @@
           "icon": "ant.fill",
           "color": "7E57C2",
           "description": "花园中蟋蟀的鸣唱",
-          "fileName": "花园蟋蟀",
-          "baseFrequency": 2000.0,
-          "harmonics": [
-            1.0,
-            0.3,
-            0.1
-          ]
+          "fileName": "花园蟋蟀"
         },
         {
           "id": "insect_nocturne",
@@ -859,13 +510,7 @@
           "icon": "moon.fill",
           "color": "651FFF",
           "description": "夜晚虫鸣如夜曲般悠扬",
-          "fileName": "虫鸣夜曲",
-          "baseFrequency": 1500.0,
-          "harmonics": [
-            1.0,
-            0.4,
-            0.2
-          ]
+          "fileName": "虫鸣夜曲"
         },
         {
           "id": "grass_sway",
@@ -873,13 +518,7 @@
           "icon": "wind",
           "color": "26A69A",
           "description": "风吹过草地的沙沙声",
-          "fileName": "风吹草动",
-          "baseFrequency": 300.0,
-          "harmonics": [
-            1.0,
-            0.5,
-            0.3
-          ]
+          "fileName": "风吹草动"
         }
       ]
     }

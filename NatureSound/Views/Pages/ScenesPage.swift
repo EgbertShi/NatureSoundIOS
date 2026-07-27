@@ -135,25 +135,7 @@ struct ScenesPage: View {
     private func applyPreset(_ preset: ScenePreset) {
         Haptics.medium()
         withAnimation(.spring(response: 0.4)) {
-            audioManager.stopAll()
-            for soundID in preset.soundIDs {
-                if let sound = SoundItem.allSounds.first(where: { $0.id == soundID }) {
-                    audioManager.addSound(sound, volume: preset.volumes[soundID] ?? 0.7)
-                }
-            }
-        }
-        // 设置场景信息，用于锁屏 Now Playing 封面展示
-        let artwork = videoManager.nowPlayingArtwork(for: preset.id)
-        audioManager.setCurrentScene(id: preset.id, name: preset.name, artwork: artwork)
-        // 如果本地没有缩略图缓存，异步下载后更新
-        if artwork == nil {
-            Task {
-                if let image = await videoManager.fetchNowPlayingArtwork(for: preset.id) {
-                    await MainActor.run {
-                        audioManager.setCurrentScene(id: preset.id, name: preset.name, artwork: image)
-                    }
-                }
-            }
+            ScenePlaybackCoordinator(audioManager: audioManager, videoManager: videoManager).apply(preset)
         }
     }
 }
