@@ -40,6 +40,8 @@ final class SoundPlayer: Identifiable {
     // 音量渐变
     private var fadeTimer: Timer?
     private var targetVolume: Float = 0
+    // 暂停前的音量，用于 resumePlayback() 还原
+    private var volumeBeforePause: Float = 0
 
     init(sound: SoundItem, engine: AVAudioEngine) {
         self.id = sound.id
@@ -101,11 +103,42 @@ final class SoundPlayer: Identifiable {
     func stop() {
         guard isPlaying else { return }
         isPlaying = false
-        fadeVolume(to: 0, duration: 0.5) { [weak self] in
-            guard let self else { return }
-            self.playerNode.stop()
-            self.detach()
-            self.audioFile = nil
+        // 同步停止：立即停止播放并分离节点，避免异步淡出期间对象被释放
+        // 导致 playerNode.stop() / detach() 永远不被调用（僵尸节点问题）
+        fadeTimer?.invalidate()
+        fadeTimer = nil
+        panner.outputVolume = 0
+        playerNode.stop()
+        detach()
+        audioFile = nil
+    }
+
+    /// 暂停：保留排程与节点连接，仅暂停音频输出，可通过 resumePlayback() 恢复。
+    /// 同时将节点音量降为 0，避免共享 engine 图在混音/重连时暂停状态失效导致声音泄漏。
+    func pausePlayback() {
+        fadeTimer?.invalidate()
+        fadeTimer = nil
+        // 记录暂停前的目标音量，恢复时还原
+        volumeBeforePause = targetVolume
+        panner.outputVolume = 0
+        playerNode.pause()
+    }
+
+    /// 恢复由 pausePlayback() 暂停的播放。
+    func resumePlayback() {
+        guard isPlaying, let file = audioFile else { return }
+        AudioSessionConfig.configure()
+        do {
+            if !engine.isRunning { try engine.start() }
+            if !playerNode.isPlaying {
+                scheduleLoop(file: file)
+                playerNode.play()
+            }
+            // 还原暂停前的音量
+            targetVolume = volumeBeforePause
+            panner.outputVolume = volumeBeforePause
+        } catch {
+            print("[SoundPlayer] 恢复播放失败: \(error)")
         }
     }
 

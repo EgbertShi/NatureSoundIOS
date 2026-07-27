@@ -35,6 +35,9 @@ final class AudioManager {
     var activePlayers: [SoundPlayer] = []
     var masterVolume: Float = 0.8
 
+    /// 全局暂停状态：暂停时保留活跃声音列表，仅停止音频输出。
+    var isPaused: Bool = false
+
     /// 空间音频模式（关闭 / 空间音频 / 环绕声）
     var spatialMode: SpatialMode = .off
 
@@ -102,8 +105,42 @@ final class AudioManager {
     func stopAll() {
         for player in activePlayers { player.stop() }
         activePlayers.removeAll()
+        isPaused = false
         stopSurroundMotion()
         updateNowPlayingInfo()
+    }
+
+    // MARK: - 暂停 / 继续
+
+    /// 暂停所有活跃声音（保留列表，可继续播放）。
+    func pauseAll() {
+        guard !activePlayers.isEmpty, !isPaused else { return }
+        isPaused = true
+        for player in activePlayers { player.pausePlayback() }
+        stopSurroundMotion()
+        updateNowPlayingInfo()
+    }
+
+    /// 继续播放所有已暂停的声音。
+    func playAll() {
+        guard !activePlayers.isEmpty, isPaused else { return }
+        isPaused = false
+        AudioSessionConfig.configure()
+        for player in activePlayers {
+            player.resumePlayback()
+            player.updateVolume(player.volume * masterVolume)
+        }
+        applySpatialLayout()
+        updateNowPlayingInfo()
+    }
+
+    /// 在暂停与播放之间切换。
+    func togglePlayPause() {
+        if isPaused {
+            playAll()
+        } else {
+            pauseAll()
+        }
     }
 
     func updateMasterVolume(_ volume: Float) {
@@ -117,7 +154,7 @@ final class AudioManager {
     }
 
     func resumeAll() {
-        guard !activePlayers.isEmpty else { return }
+        guard !activePlayers.isEmpty, !isPaused else { return }
         AudioSessionConfig.configure()
         for player in activePlayers {
             player.resumeIfNeeded()
@@ -214,7 +251,7 @@ final class AudioManager {
             info[MPNowPlayingInfoPropertyPlaybackRate] = 0.0
         } else {
             info[MPMediaItemPropertyTitle] = activePlayers.prefix(3).map { $0.sound.name }.joined(separator: " · ")
-            info[MPNowPlayingInfoPropertyPlaybackRate] = 1.0
+            info[MPNowPlayingInfoPropertyPlaybackRate] = isPaused ? 0.0 : 1.0
         }
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
         #endif
@@ -236,10 +273,13 @@ final class AudioManager {
         center.playCommand.isEnabled = true
         center.playCommand.addTarget { [weak self] _ in
             guard let self, !self.activePlayers.isEmpty else { return .commandFailed }
-            self.resumeAll(); return .success
+            self.playAll(); return .success
         }
         center.pauseCommand.isEnabled = true
-        center.pauseCommand.addTarget { [weak self] _ in self?.stopAll(); return .success }
+        center.pauseCommand.addTarget { [weak self] _ in
+            guard let self, !self.activePlayers.isEmpty else { return .commandFailed }
+            self.pauseAll(); return .success
+        }
         center.stopCommand.isEnabled = true
         center.stopCommand.addTarget { [weak self] _ in self?.stopAll(); return .success }
         center.skipForwardCommand.preferredIntervals = [10]

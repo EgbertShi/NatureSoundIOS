@@ -126,13 +126,10 @@ struct DigitalClock: View {
     let time: Date
     let formatter: ClockTimeFormatter
     let primaryColor: Color
-    let showTimerRing: Bool
     let timerManager: TimerManager
 
     var body: some View {
         VStack(spacing: 10) {
-            if showTimerRing { TimerRing(timerManager: timerManager) }
-
             HStack(alignment: .firstTextBaseline, spacing: 4) {
                 Text(formatter.timeString(time))
                     .font(.system(size: 78, weight: .bold, design: .rounded))
@@ -168,7 +165,6 @@ struct DialClock: View {
     let time: Date
     let formatter: ClockTimeFormatter
     let primaryColor: Color
-    let showTimerRing: Bool
     let timerManager: TimerManager
     private let angles = ClockAngles()
 
@@ -176,18 +172,6 @@ struct DialClock: View {
         VStack(spacing: 12) {
             ZStack {
                 Circle().stroke(Color.white.opacity(0.08), lineWidth: 1).frame(width: 180, height: 180)
-
-                if showTimerRing {
-                    Circle()
-                        .trim(from: 0, to: timerManager.progress)
-                        .stroke(
-                            LinearGradient(colors: [Color(hex: "FF6B6B"), Color(hex: "FF8E53")], startPoint: .topLeading, endPoint: .bottomTrailing),
-                            style: StrokeStyle(lineWidth: 2, lineCap: .round)
-                        )
-                        .frame(width: 180, height: 180)
-                        .rotationEffect(.degrees(-90))
-                        .animation(.linear(duration: 1), value: timerManager.progress)
-                }
 
                 ForEach(0..<12, id: \.self) { i in
                     Rectangle()
@@ -229,13 +213,10 @@ struct MinimalClock: View {
     let time: Date
     let formatter: ClockTimeFormatter
     let primaryColor: Color
-    let showTimerRing: Bool
     let timerManager: TimerManager
 
     var body: some View {
         VStack(spacing: 6) {
-            if showTimerRing { TimerRing(timerManager: timerManager) }
-
             HStack(alignment: .firstTextBaseline, spacing: 2) {
                 Text(formatter.timeString(time))
                     .font(.system(size: 64, weight: .heavy, design: .rounded))
@@ -297,15 +278,12 @@ struct SplitClock: View {
     let time: Date
     let formatter: ClockTimeFormatter
     let primaryColor: Color
-    let showTimerRing: Bool
     let timerManager: TimerManager
 
     private let digitSize: CGFloat = 76
 
     var body: some View {
         VStack(spacing: 14) {
-            if showTimerRing { TimerRing(timerManager: timerManager) }
-
             HStack(spacing: 6) {
                 // 小时翻页
                 FlipDigit(value: formatter.hourString(time), size: digitSize)

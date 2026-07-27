@@ -36,7 +36,11 @@ struct MiniPlayerBar: View {
                 Text("\(audioManager.activeCount) 种声音混合中")
                     .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(Theme.textPrimary(.light))
-                if timerManager.isActive {
+                if audioManager.isPaused {
+                    Text("已暂停，点击继续")
+                        .font(.system(size: 11, weight: .medium))
+                        .foregroundStyle(Theme.textTertiary(.light))
+                } else if timerManager.isActive {
                     Text(timerManager.displayTime + " 后停止")
                         .font(.system(size: 11, weight: .medium, design: .monospaced))
                         .foregroundStyle(Theme.danger.opacity(0.8))
@@ -48,6 +52,24 @@ struct MiniPlayerBar: View {
             }
 
             Spacer()
+
+            // 停止 / 播放按钮
+            Button {
+                Haptics.light()
+                if audioManager.isPaused {
+                    audioManager.playAll()
+                } else {
+                    audioManager.stopAll()
+                }
+            } label: {
+                Image(systemName: audioManager.isPaused ? "play.fill" : "stop.fill")
+                    .font(.system(size: 15, weight: .bold))
+                    .foregroundStyle(audioManager.isPaused ? Theme.accent : Theme.danger)
+                    .frame(width: 40, height: 40)
+                    .background(Circle().fill((audioManager.isPaused ? Theme.accent : Theme.danger).opacity(0.12)))
+                    .contentShape(Circle())
+            }
+            .buttonStyle(.plain)
 
             Image(systemName: "chevron.up")
                 .font(.system(size: 14, weight: .semibold))
