@@ -6,6 +6,7 @@
 //
 
 import AVFoundation
+import os
 import SwiftUI
 
 // MARK: - 声音播放模式
@@ -134,7 +135,7 @@ final class SoundPlayer: Identifiable {
         let subdirectory = "Sounds/\(sound.category.rawValue)"
         guard let url = Bundle.main.url(forResource: sound.fileName, withExtension: "m4a", subdirectory: subdirectory)
             ?? Bundle.main.url(forResource: sound.fileName, withExtension: "m4a") else {
-            print("[SoundPlayer] 未找到音频文件: \(sound.fileName) (category: \(sound.category.rawValue))")
+            AppLogger.audio.error("未找到音频文件: \(self.sound.fileName, privacy: .public) (分类: \(self.sound.category.rawValue, privacy: .public))")
             isPlaying = false
             return false
         }
@@ -183,11 +184,11 @@ final class SoundPlayer: Identifiable {
             } else {
                 audioPlayer = nil
                 isPlaying = false
-                print("[SoundPlayer] 播放启动失败: \(sound.fileName)")
+                AppLogger.audio.error("音频播放启动失败: \(self.sound.fileName, privacy: .public)")
                 return false
             }
         } catch {
-            print("[SoundPlayer] 播放失败: \(error)")
+            AppLogger.audio.error("音频播放失败: \(error.localizedDescription, privacy: .public)")
             isPlaying = false
             return false
         }

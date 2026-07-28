@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AVFoundation
+import os
 
 // MARK: - AppDelegate 用于控制屏幕方向
 class AppDelegate: NSObject, UIApplicationDelegate {
@@ -18,9 +19,9 @@ class AppDelegate: NSObject, UIApplicationDelegate {
             let session = AVAudioSession.sharedInstance()
             try session.setCategory(.playback, mode: .default, options: [])
             try session.setActive(true)
-            print("[AppDelegate] ✅ audio session 配置成功: category=\(session.category.rawValue)")
+            AppLogger.audio.info("应用启动时已配置音频会话: \(session.category.rawValue, privacy: .public)")
         } catch {
-            print("[AppDelegate] ❌ audio session 配置失败: \(error)")
+            AppLogger.audio.error("应用启动时音频会话配置失败: \(error.localizedDescription, privacy: .public)")
         }
         return true
     }

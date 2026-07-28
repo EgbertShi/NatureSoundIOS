@@ -16,10 +16,12 @@ struct AmbianceCard: View {
     let timerManager: TimerManager
     let weatherService: WeatherService
     let videoManager: VideoManager
-    let recommendedScene: ScenePreset
+    let recommendation: DailyRecommendation
     @Binding var showSettings: Bool
     /// 播放指定场景（含各声音独立音量）
     let onPlayScene: (ScenePreset) -> Void
+    /// 播放指定单个声音
+    let onPlaySound: (SoundItem) -> Void
 
     // MARK: - 与 StandbyView 共享的沉浸模式选择（@AppStorage）
     // 确保首页卡片视频与沉浸模式场景视频使用同一场景、同一变体，保持两端同步。
@@ -95,8 +97,8 @@ struct AmbianceCard: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 10)
 
-                    // 今日推荐场景行（整合原推荐声音行和今日推荐卡片）
-                    recommendedSceneRow
+                    // 今日推荐行（场景或氛围声音）
+                    recommendationRow
                         .padding(.horizontal, 20)
                         .padding(.top, 16)
                         .padding(.bottom, 22)
@@ -125,12 +127,22 @@ struct AmbianceCard: View {
         currentImageName = period.ambianceImageName(weather: weather)
     }
 
-    // MARK: - 今日推荐场景行（整合后的底部入口）
+    // MARK: - 今日推荐行（场景或氛围声音）
 
-    private var recommendedSceneRow: some View {
+    @ViewBuilder
+    private var recommendationRow: some View {
+        switch recommendation {
+        case .scene(let preset):
+            recommendedSceneRow(preset)
+        case .sound(let sound):
+            recommendedSoundRow(sound)
+        }
+    }
+
+    private func recommendedSceneRow(_ preset: ScenePreset) -> some View {
         Button {
             Haptics.medium()
-            onPlayScene(recommendedScene)
+            onPlayScene(preset)
         } label: {
             HStack(spacing: 12) {
                 // 场景图标
@@ -138,7 +150,7 @@ struct AmbianceCard: View {
                     Circle()
                         .fill(Color.white.opacity(0.2))
                         .frame(width: 38, height: 38)
-                    Image(systemName: recommendedScene.icon)
+                    Image(systemName: preset.icon)
                         .font(.system(size: 16, weight: .medium))
                         .foregroundStyle(Color.white)
                 }
@@ -155,14 +167,14 @@ struct AmbianceCard: View {
                         Text("·")
                             .font(.system(size: 10))
                             .foregroundStyle(Color.white.opacity(0.5))
-                        Text(recommendedScene.name)
+                        Text(preset.name)
                             .font(.system(size: 12, weight: .bold))
                             .foregroundStyle(Color.white)
                     }
 
                     // 声音图标条
                     HStack(spacing: -3) {
-                        ForEach(recommendedScene.soundIDs.prefix(5), id: \.self) { soundID in
+                        ForEach(preset.soundIDs.prefix(5), id: \.self) { soundID in
                             if let sound = SoundItem.allSounds.first(where: { $0.id == soundID }) {
                                 ZStack {
                                     Circle()
@@ -175,8 +187,8 @@ struct AmbianceCard: View {
                                 .overlay(Circle().stroke(Color.white.opacity(0.3), lineWidth: 1))
                             }
                         }
-                        if recommendedScene.soundIDs.count > 5 {
-                            Text("+\(recommendedScene.soundIDs.count - 5)")
+                        if preset.soundIDs.count > 5 {
+                            Text("+\(preset.soundIDs.count - 5)")
                                 .font(.system(size: 9, weight: .medium))
                                 .foregroundStyle(Color.white.opacity(0.6))
                                 .padding(.leading, 4)
@@ -195,6 +207,64 @@ struct AmbianceCard: View {
                 .padding(.horizontal, 14)
                 .padding(.vertical, 8)
                 .background(Capsule().fill(Color.white.opacity(0.2)))
+                .overlay(Capsule().stroke(Color.white.opacity(0.3), lineWidth: 1))
+            }
+        }
+        .buttonStyle(.plain)
+    }
+
+    private func recommendedSoundRow(_ sound: SoundItem) -> some View {
+        Button {
+            Haptics.medium()
+            onPlaySound(sound)
+        } label: {
+            HStack(spacing: 12) {
+                // 声音图标
+                ZStack {
+                    Circle()
+                        .fill(sound.color.opacity(0.5))
+                        .frame(width: 38, height: 38)
+                    Image(systemName: sound.icon)
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(Color.white)
+                }
+
+                // 声音名称 + 描述
+                VStack(alignment: .leading, spacing: 5) {
+                    HStack(spacing: 4) {
+                        Image(systemName: "sparkles")
+                            .font(.system(size: 9))
+                            .foregroundStyle(Color(hex: "FFD54F"))
+                        Text("今日推荐")
+                            .font(.system(size: 10, weight: .semibold))
+                            .foregroundStyle(Color(hex: "FFD54F"))
+                        Text("·")
+                            .font(.system(size: 10))
+                            .foregroundStyle(Color.white.opacity(0.5))
+                        Text(sound.name)
+                            .font(.system(size: 12, weight: .bold))
+                            .foregroundStyle(Color.white)
+                    }
+
+                    Text(sound.description)
+                        .font(.system(size: 11))
+                        .foregroundStyle(Color.white.opacity(0.65))
+                        .lineLimit(1)
+                }
+
+                Spacer()
+
+                // 播放按钮
+                HStack(spacing: 4) {
+                    Image(systemName: audioManager.isPlaying(sound) ? "checkmark" : "play.fill")
+                        .font(.system(size: 11))
+                    Text(audioManager.isPlaying(sound) ? "播放中" : "播放")
+                        .font(.system(size: 13, weight: .semibold))
+                }
+                .foregroundStyle(Color.white)
+                .padding(.horizontal, 14)
+                .padding(.vertical, 8)
+                .background(Capsule().fill(audioManager.isPlaying(sound) ? Color.white.opacity(0.35) : Color.white.opacity(0.2)))
                 .overlay(Capsule().stroke(Color.white.opacity(0.3), lineWidth: 1))
             }
         }

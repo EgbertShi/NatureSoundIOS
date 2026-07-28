@@ -7,7 +7,6 @@
 
 import SwiftUI
 import UIKit
-internal import Combine
 
 // MARK: - 展开面板类型
 private enum ExpandedPanel: Equatable {
@@ -25,7 +24,7 @@ struct StandbyView: View {
     let videoManager: VideoManager
     @Binding var isPresented: Bool
 
-    @StateObject private var orientationManager = OrientationManager()
+    @State private var orientationManager = OrientationManager()
     @AppStorage("standby_selectedSceneID") private var selectedSceneID: String?
     @AppStorage("standby_selectedVideoVariant") private var selectedVideoVariant = 0
     /// 初始化标志：在 selectInitialScene() 完成前不渲染场景视频，
@@ -432,10 +431,10 @@ struct StandbyView: View {
     }
 
     private func selectInitialScene() {
-        // 与 AmbianceCard.matchedScene 保持完全相同的场景选择逻辑，确保两端同步
+        // 与 AmbianceCard.matchedScene 保持相同的场景选择逻辑，确保两端同步
         // 1. 优先使用 AudioManager 记录的当前场景
         // 2. 回退到 bestMatch（子集匹配，与 AmbianceCard 一致）
-        // 3. 都不匹配时，保持持久化值或选第一个有视频的场景
+        // 3. 都不匹配时，不加载上一次的场景，回退到默认视图（selectedSceneID = nil）
         let effectiveSceneID: String? = {
             if let currentID = audioManager.currentSceneID,
                videoScenes.contains(where: { $0.id == currentID }) {
@@ -451,18 +450,12 @@ struct StandbyView: View {
             return nil
         }()
 
-        if let effectiveID = effectiveSceneID {
-            if selectedSceneID != effectiveID {
-                // 场景变了（用户从外部切换了场景或声音组合变化），重置变体
-                selectedSceneID = effectiveID
-                selectedVideoVariant = 0
-            }
-            // 场景没变时，保持持久化的视频变体
-        } else if selectedSceneID == nil || !videoScenes.contains(where: { $0.id == selectedSceneID! }) {
-            // 无法匹配到有效场景且持久化值无效，回退到第一个有视频的场景
-            selectedSceneID = videoScenes.first?.id
+        if selectedSceneID != effectiveSceneID {
+            // 场景变化（含匹配失败时置空，回退到默认视图），重置变体
+            selectedSceneID = effectiveSceneID
             selectedVideoVariant = 0
         }
+        // 场景没变时，保持持久化的视频变体
 
         // 视频变体越界保护
         if videoVariantCount > 0 && selectedVideoVariant >= videoVariantCount {

@@ -6,6 +6,7 @@
 //
 
 import AVFoundation
+import os
 
 // MARK: - 音频会话配置
 enum AudioSessionConfig {
@@ -19,7 +20,7 @@ enum AudioSessionConfig {
             try session.setCategory(.playback, mode: .default, options: [])
             try session.setActive(true, options: [])
         } catch {
-            print("[AudioSession] 配置失败: \(error)")
+            AppLogger.audio.error("音频会话配置失败: \(error.localizedDescription, privacy: .public)")
         }
         #endif
     }

@@ -7,6 +7,53 @@
 
 import SwiftUI
 
+// MARK: - 每日推荐类型
+enum DailyRecommendation {
+    /// 推荐一个场景（包含多种声音的组合）
+    case scene(ScenePreset)
+    /// 推荐一个氛围声音（单个声音）
+    case sound(SoundItem)
+
+    /// 用于标识推荐内容是否变化的 key
+    var id: String {
+        switch self {
+        case .scene(let preset): return "scene_\(preset.id)"
+        case .sound(let item):   return "sound_\(item.id)"
+        }
+    }
+
+    /// 基于日期和时段生成今日推荐：从所有场景和氛围声音中选取。
+    /// 使用日期+时段作为伪随机种子，保证同一时段内推荐内容稳定。
+    static func today() -> DailyRecommendation {
+        let calendar = Calendar.current
+        let now = Date()
+        let dayOfYear = calendar.ordinality(of: .day, in: .year, for: now) ?? 1
+        let period = DayPeriod.current()
+        let periodOffset: Int = switch period {
+        case .morning:   0
+        case .afternoon: 1
+        case .evening:   2
+        case .night:     3
+        }
+        let seed = dayOfYear * 4 + periodOffset
+
+        // 候选池：所有场景 + 氛围分类下的所有声音
+        let scenes = ScenePreset.allPresets
+        let ambientSounds = SoundItem.allSounds.filter { $0.category == .ambient }
+        let totalCount = scenes.count + ambientSounds.count
+        guard totalCount > 0 else {
+            return .scene(scenes.first ?? ScenePreset.allPresets[0])
+        }
+
+        let index = seed % totalCount
+        if index < scenes.count {
+            return .scene(scenes[index])
+        } else {
+            return .sound(ambientSounds[index - scenes.count])
+        }
+    }
+}
+
 // MARK: - 声音页面
 struct SoundsPage: View {
     let audioManager: AudioManager
@@ -22,21 +69,8 @@ struct SoundsPage: View {
     private var columns: [GridItem] { [GridItem(.adaptive(minimum: 100), spacing: 12)] }
     private var filteredSounds: [SoundItem] { SoundItem.sounds(for: selectedCategory) }
 
-    /// 今日推荐场景（根据时段选择）
-    private var dailyRecommendedScene: ScenePreset {
-        let sceneID: String
-        switch DayPeriod.current() {
-        case .morning: sceneID = "spring_garden"
-        case .afternoon: sceneID = "deep_focus"
-        case .evening: sceneID = "zen_temple"
-        case .night: sceneID = "ocean_night"
-        }
-
-        if let scene = ScenePreset.allPresets.first(where: { $0.id == sceneID }) ?? ScenePreset.allPresets.first {
-            return scene
-        }
-        fatalError("scenes.json 未包含可用场景")
-    }
+    /// 今日推荐（场景或氛围声音，每个时段切换一次）
+    private var dailyRecommendation: DailyRecommendation { .today() }
 
     var body: some View {
         ScrollView(showsIndicators: false) {
@@ -46,10 +80,13 @@ struct SoundsPage: View {
                     timerManager: timerManager,
                     weatherService: weatherService,
                     videoManager: videoManager,
-                    recommendedScene: dailyRecommendedScene,
+                    recommendation: dailyRecommendation,
                     showSettings: $showSettings,
                     onPlayScene: { scene in
                         applyScene(scene)
+                    },
+                    onPlaySound: { sound in
+                        playRecommendedSound(sound)
                     }
                 )
 
@@ -121,6 +158,24 @@ struct SoundsPage: View {
                     .foregroundStyle(Theme.textTertiary(.light))
             }
             Spacer()
+        }
+    }
+
+    // MARK: - 播放推荐声音
+
+    private func playRecommendedSound(_ sound: SoundItem) {
+        if audioManager.isPlaying(sound) { return }
+        if audioManager.canAddMore {
+            Haptics.medium()
+            var succeeded = true
+            withAnimation(.spring(response: 0.3)) { succeeded = audioManager.toggle(sound) }
+            if !succeeded {
+                Haptics.soft()
+                showPlaybackFailedAlert = true
+            }
+        } else {
+            Haptics.soft()
+            showLimitAlert = true
         }
     }
 

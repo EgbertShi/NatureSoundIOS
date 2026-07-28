@@ -57,7 +57,7 @@ All state lives in `@Observable final class` managers, created **once** as `@Sta
 
 ### Platform guards
 
-Audio-session, `MPRemoteCommandCenter`, `UIScreen`, `UIDevice`, and orientation code is wrapped in `#if os(iOS)` because the target also builds for macCatalyst and visionOS. When adding UIKit/AVFoundation code, check whether it needs the same guard. `internal import Combine` (in `OrientationManager.swift`, `StandbyView.swift`) is intentional — the new access-level import syntax.
+Audio-session, `MPRemoteCommandCenter`, `UIScreen`, `UIDevice`, and orientation code is wrapped in `#if os(iOS)` because the target also builds for macCatalyst and visionOS. When adding UIKit/AVFoundation code, check whether it needs the same guard.
 
 ## Conventions
 

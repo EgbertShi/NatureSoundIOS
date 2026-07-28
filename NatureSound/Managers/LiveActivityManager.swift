@@ -7,6 +7,7 @@
 
 import ActivityKit
 import Foundation
+import os
 
 // MARK: - Live Activity 定时器属性
 
@@ -57,7 +58,7 @@ final class LiveActivityManager {
                 pushType: nil
             )
         } catch {
-            print("[LiveActivity] 启动失败: \(error)")
+            AppLogger.liveActivity.error("启动 Live Activity 失败: \(error.localizedDescription, privacy: .public)")
         }
     }
 

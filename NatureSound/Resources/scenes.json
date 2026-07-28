@@ -208,6 +208,46 @@
       "soundIDs": ["tropical_rainforest", "night_frog", "insect_nocturne", "night"],
       "volumes": {"tropical_rainforest": 0.65, "night_frog": 0.35, "insect_nocturne": 0.25, "night": 0.15},
       "tags": ["自然", "助眠"]
+    },
+    {
+      "id": "mountain_peak",
+      "name": "雪山之巅",
+      "icon": "mountain.2.fill",
+      "description": "云雾缭绕的雪山与清冷山风",
+      "colorHex": "78909C",
+      "soundIDs": ["cold_wind", "eagle", "snowfall"],
+      "volumes": {"cold_wind": 0.6, "eagle": 0.2, "snowfall": 0.25},
+      "tags": ["自然", "专注"]
+    },
+    {
+      "id": "sea_sunset",
+      "name": "海上落日",
+      "icon": "sunset.fill",
+      "description": "海浪、海鸥与晚风中的落日余晖",
+      "colorHex": "FF8A65",
+      "soundIDs": ["shallow_waves", "seagull", "cold_wind"],
+      "volumes": {"shallow_waves": 0.75, "seagull": 0.25, "cold_wind": 0.3},
+      "tags": ["放松", "自然"]
+    },
+    {
+      "id": "bay_cove",
+      "name": "海湾秘境",
+      "icon": "water.waves",
+      "description": "礁石海湾中清浅海浪与微风",
+      "colorHex": "26A69A",
+      "soundIDs": ["shallow_waves", "forest_wind", "seagull"],
+      "volumes": {"shallow_waves": 0.7, "forest_wind": 0.3, "seagull": 0.2},
+      "tags": ["自然", "放松"]
+    },
+    {
+      "id": "beach_reading",
+      "name": "沙滩读书",
+      "icon": "book.fill",
+      "description": "海浪、微风与夕阳下的静谧阅读时光",
+      "colorHex": "FFB74D",
+      "soundIDs": ["shallow_waves", "forest_wind", "seagull"],
+      "volumes": {"shallow_waves": 0.6, "forest_wind": 0.25, "seagull": 0.15},
+      "tags": ["专注", "放松"]
     }
   ]
 }

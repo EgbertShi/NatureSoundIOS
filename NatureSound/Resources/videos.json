@@ -64,6 +64,16 @@
           "videoPath": "场景视频/ocean_night_3.mp4",
           "thumbnailPath": "场景缩略图/ocean_night_3.jpg",
           "fileSize": 5675698
+        },
+        {
+          "videoPath": "场景视频/ocean_night_4.mp4",
+          "thumbnailPath": "场景缩略图/ocean_night_4.jpg",
+          "fileSize": 13935007
+        },
+        {
+          "videoPath": "场景视频/ocean_night_5.mp4",
+          "thumbnailPath": "场景缩略图/ocean_night_5.jpg",
+          "fileSize": 14713830
         }
       ],
       "version": 1
@@ -110,13 +120,6 @@
     {
       "sceneID": "spring_garden",
       "name": "春日花园",
-      "videos": [
-        {
-          "videoPath": "场景视频/spring_garden.mp4",
-          "thumbnailPath": "场景缩略图/spring_garden.jpg",
-          "fileSize": 0
-        }
-      ],
       "version": 1
     },
     {
@@ -141,9 +144,9 @@
       "name": "盛夏午后",
       "videos": [
         {
-          "videoPath": "场景视频/summer_noon.mp4",
-          "thumbnailPath": "场景缩略图/summer_noon.jpg",
-          "fileSize": 0
+          "videoPath": "场景视频/summer_noon_1.mp4",
+          "thumbnailPath": "场景缩略图/summer_noon_1.jpg",
+          "fileSize": 1717313
         }
       ],
       "version": 1
@@ -153,9 +156,9 @@
       "name": "冬夜暖炉",
       "videos": [
         {
-          "videoPath": "场景视频/winter_night.mp4",
-          "thumbnailPath": "场景缩略图/winter_night.jpg",
-          "fileSize": 0
+          "videoPath": "场景视频/winter_night_1.mp4",
+          "thumbnailPath": "场景缩略图/winter_night_1.jpg",
+          "fileSize": 1998248
         }
       ],
       "version": 1
@@ -163,13 +166,6 @@
     {
       "sceneID": "cave_explore",
       "name": "洞穴探秘",
-      "videos": [
-        {
-          "videoPath": "场景视频/cave_explore.mp4",
-          "thumbnailPath": "场景缩略图/cave_explore.jpg",
-          "fileSize": 0
-        }
-      ],
       "version": 1
     },
     {
@@ -177,9 +173,14 @@
       "name": "湖畔晨曦",
       "videos": [
         {
-          "videoPath": "场景视频/lake_dawn.mp4",
-          "thumbnailPath": "场景缩略图/lake_dawn.jpg",
-          "fileSize": 0
+          "videoPath": "场景视频/lake_dawn_1.mp4",
+          "thumbnailPath": "场景缩略图/lake_dawn_1.jpg",
+          "fileSize": 13935007
+        },
+        {
+          "videoPath": "场景视频/lake_dawn_2.mp4",
+          "thumbnailPath": "场景缩略图/lake_dawn_2.jpg",
+          "fileSize": 5356057
         }
       ],
       "version": 1
@@ -189,9 +190,14 @@
       "name": "星空露营",
       "videos": [
         {
-          "videoPath": "场景视频/starry_night.mp4",
-          "thumbnailPath": "场景缩略图/starry_night.jpg",
-          "fileSize": 0
+          "videoPath": "场景视频/starry_night_1.mp4",
+          "thumbnailPath": "场景缩略图/starry_night_1.jpg",
+          "fileSize": 896528
+        },
+        {
+          "videoPath": "场景视频/starry_night_2.mp4",
+          "thumbnailPath": "场景缩略图/starry_night_2.jpg",
+          "fileSize": 1998248
         }
       ],
       "version": 1
@@ -199,25 +205,11 @@
     {
       "sceneID": "waterfall_zen",
       "name": "瀑布禅修",
-      "videos": [
-        {
-          "videoPath": "场景视频/waterfall_zen.mp4",
-          "thumbnailPath": "场景缩略图/waterfall_zen.jpg",
-          "fileSize": 0
-        }
-      ],
       "version": 1
     },
     {
       "sceneID": "rainy_cafe",
       "name": "雨日咖啡馆",
-      "videos": [
-        {
-          "videoPath": "场景视频/rainy_cafe.mp4",
-          "thumbnailPath": "场景缩略图/rainy_cafe.jpg",
-          "fileSize": 0
-        }
-      ],
       "version": 1
     },
     {
@@ -225,9 +217,9 @@
       "name": "田园清晨",
       "videos": [
         {
-          "videoPath": "场景视频/countryside_dawn.mp4",
-          "thumbnailPath": "场景缩略图/countryside_dawn.jpg",
-          "fileSize": 0
+          "videoPath": "场景视频/countryside_dawn_1.mp4",
+          "thumbnailPath": "场景缩略图/countryside_dawn_1.jpg",
+          "fileSize": 13935007
         }
       ],
       "version": 1
@@ -235,25 +227,11 @@
     {
       "sceneID": "tropical_night",
       "name": "热带雨夜",
-      "videos": [
-        {
-          "videoPath": "场景视频/tropical_night.mp4",
-          "thumbnailPath": "场景缩略图/tropical_night.jpg",
-          "fileSize": 0
-        }
-      ],
       "version": 1
     },
     {
       "sceneID": "storm_shelter",
       "name": "暴风雨夜",
-      "videos": [
-        {
-          "videoPath": "场景视频/storm_shelter.mp4",
-          "thumbnailPath": "场景缩略图/storm_shelter.jpg",
-          "fileSize": 0
-        }
-      ],
       "version": 1
     },
     {
@@ -261,9 +239,9 @@
       "name": "山涧听泉",
       "videos": [
         {
-          "videoPath": "场景视频/mountain_spring.mp4",
-          "thumbnailPath": "场景缩略图/mountain_spring.jpg",
-          "fileSize": 0
+          "videoPath": "场景视频/mountain_spring_1.mp4",
+          "thumbnailPath": "场景缩略图/mountain_spring_1.jpg",
+          "fileSize": 1998248
         }
       ],
       "version": 1
@@ -271,23 +249,67 @@
     {
       "sceneID": "tibetan_temple",
       "name": "藏寺梵音",
-      "videos": [
-        {
-          "videoPath": "场景视频/tibetan_temple.mp4",
-          "thumbnailPath": "场景缩略图/tibetan_temple.jpg",
-          "fileSize": 0
-        }
-      ],
       "version": 1
     },
     {
       "sceneID": "rural_summer",
       "name": "乡野仲夏",
+      "version": 1
+    },
+    {
+      "sceneID": "mountain_peak",
+      "name": "雪山之巅",
       "videos": [
         {
-          "videoPath": "场景视频/rural_summer.mp4",
-          "thumbnailPath": "场景缩略图/rural_summer.jpg",
-          "fileSize": 0
+          "videoPath": "场景视频/mountain_peak_1.mp4",
+          "thumbnailPath": "场景缩略图/mountain_peak_1.jpg",
+          "fileSize": 1998248
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "sea_sunset",
+      "name": "海上落日",
+      "videos": [
+        {
+          "videoPath": "场景视频/sea_sunset_1.mp4",
+          "thumbnailPath": "场景缩略图/sea_sunset_1.jpg",
+          "fileSize": 1526407
+        },
+        {
+          "videoPath": "场景视频/sea_sunset_2.mp4",
+          "thumbnailPath": "场景缩略图/sea_sunset_2.jpg",
+          "fileSize": 5356057
+        },
+        {
+          "videoPath": "场景视频/sea_sunset_3.mp4",
+          "thumbnailPath": "场景缩略图/sea_sunset_3.jpg",
+          "fileSize": 16011141
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "bay_cove",
+      "name": "海湾秘境",
+      "videos": [
+        {
+          "videoPath": "场景视频/bay_cove_1.mp4",
+          "thumbnailPath": "场景缩略图/bay_cove_1.jpg",
+          "fileSize": 9818330
+        }
+      ],
+      "version": 1
+    },
+    {
+      "sceneID": "beach_reading",
+      "name": "沙滩读书",
+      "videos": [
+        {
+          "videoPath": "场景视频/beach_reading_1.mp4",
+          "thumbnailPath": "场景缩略图/beach_reading_1.jpg",
+          "fileSize": 1717313
         }
       ],
       "version": 1

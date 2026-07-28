@@ -5,13 +5,12 @@
 //  Created by egbert on 2026/7/11.
 //
 
-import SwiftUI
 import UIKit
-internal import Combine
 
 // MARK: - 屏幕方向管理器
-class OrientationManager: ObservableObject {
-    @Published var isLandscape = false
+@Observable
+final class OrientationManager {
+    var isLandscape = false
 
     func setLandscape() {
         isLandscape = true

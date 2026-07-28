@@ -7,6 +7,7 @@
 
 import SwiftUI
 import AVFoundation
+import os
 
 // MARK: - videos.json 数据模型
 
@@ -19,6 +20,18 @@ private struct VideoEntry: Decodable {
     let sceneID: String
     let name: String
     let videos: [VideoAsset]
+
+    private enum CodingKeys: String, CodingKey {
+        case sceneID, name, videos
+    }
+
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        sceneID = try container.decode(String.self, forKey: .sceneID)
+        name = try container.decode(String.self, forKey: .name)
+        // videos 字段允许缺失（场景暂未配置视频素材时），缺失时视为空数组
+        videos = try container.decodeIfPresent([VideoAsset].self, forKey: .videos) ?? []
+    }
 }
 
 private struct VideoAsset: Decodable {
@@ -72,7 +85,7 @@ final class VideoManager {
     private func loadVideoIndex() {
         guard let url = Bundle.main.url(forResource: "videos", withExtension: "json"),
               let data = try? Data(contentsOf: url) else {
-            print("[VideoManager] 未找到 videos.json")
+            AppLogger.video.error("未找到 videos.json")
             return
         }
         do {
@@ -82,7 +95,7 @@ final class VideoManager {
                 entries[entry.sceneID] = entry
             }
         } catch {
-            print("[VideoManager] 解析 videos.json 失败: \(error.localizedDescription)")
+            AppLogger.video.error("解析 videos.json 失败: \(error.localizedDescription, privacy: .public)")
         }
     }
 
@@ -152,7 +165,7 @@ final class VideoManager {
             // 磁盘上存在但不是合法图片（可能是 404 错误页面），清理掉
             if fm.fileExists(atPath: url.path) {
                 try? fm.removeItem(at: url)
-                print("[VideoManager] 清理无效缩略图缓存: \(fileName)")
+                AppLogger.video.info("清理无效缩略图缓存: \(fileName, privacy: .public)")
             }
             return nil
         }
@@ -173,7 +186,7 @@ final class VideoManager {
             // 存在但太小，是脏数据，清理掉
             if fm.fileExists(atPath: url.path) {
                 try? fm.removeItem(at: url)
-                print("📀 [VideoManager] 清理无效视频缓存: \(fileName) (文件过小)")
+                AppLogger.video.info("清理无效视频缓存: \(fileName, privacy: .public)（文件过小）")
             }
             return nil
         }
@@ -199,20 +212,20 @@ final class VideoManager {
             // 校验 HTTP 状态码
             let httpStatus = (response as? HTTPURLResponse)?.statusCode ?? -1
             guard (200...299).contains(httpStatus) else {
-                print("[VideoManager] 缩略图下载返回非 2xx 状态码: \(httpStatus), fileName=\(fileName)")
+                AppLogger.video.error("缩略图下载返回非 2xx 状态码: \(httpStatus), 文件: \(fileName, privacy: .public)")
                 return
             }
             // 校验数据是否为合法图片
             guard data.count >= Self.minimumThumbnailBytes,
                   let image = UIImage(data: data) else {
-                print("[VideoManager] 缩略图数据无效: fileName=\(fileName), dataSize=\(data.count)")
+                AppLogger.video.error("缩略图数据无效: 文件: \(fileName, privacy: .public), 大小: \(data.count)")
                 return
             }
             try data.write(to: destination, options: .atomic)
             thumbnailCache[fileName] = image
             cacheVersion += 1
         } catch {
-            print("[VideoManager] 缓存缩略图失败 \(fileName): \(error.localizedDescription)")
+            AppLogger.video.error("缓存缩略图失败 \(fileName, privacy: .public): \(error.localizedDescription, privacy: .public)")
         }
     }
 
@@ -221,18 +234,18 @@ final class VideoManager {
         // fileSize == 0 的条目不尝试下载
         guard let asset = videoAsset(for: sceneID, variantIndex: variantIndex),
               asset.fileSize > 0 else {
-            print("📀 [VideoManager] cacheAsset 跳过: 资源未上传 (\(sceneID), \(variantIndex))")
+            AppLogger.video.debug("跳过视频缓存：资源未上传（\(sceneID, privacy: .public), \(variantIndex)）")
             return
         }
         guard let fileName = videoCacheFileName(for: sceneID, variantIndex: variantIndex) else {
-            print("📀 [VideoManager] cacheAsset 跳过: 无法获取文件名 (\(sceneID), \(variantIndex))")
+            AppLogger.video.error("跳过视频缓存：无法获取文件名（\(sceneID, privacy: .public), \(variantIndex)）")
             return
         }
         let remoteURL = videoURL(for: sceneID, variantIndex: variantIndex)
-        print("📀 [VideoManager] cacheAsset 开始: fileName=\(fileName), remoteURL=\(remoteURL?.absoluteString ?? "nil"), isCaching=\(caching.contains(fileName))")
+        AppLogger.video.debug("开始视频缓存: \(fileName, privacy: .public), 正在缓存: \(self.caching.contains(fileName))")
         guard !caching.contains(fileName),
               let videoURL = remoteURL else {
-            print("📀 [VideoManager] cacheAsset 跳过: fileName=\(fileName) (已在下载中或无远程URL)")
+            AppLogger.video.debug("跳过视频缓存: \(fileName, privacy: .public)（正在下载或无远程地址）")
             return
         }
 
@@ -241,13 +254,13 @@ final class VideoManager {
         if let attrs = try? fm.attributesOfItem(atPath: videoDestination.path),
            let existingSize = attrs[.size] as? Int,
            existingSize >= Self.minimumVideoBytes {
-            print("📀 [VideoManager] cacheAsset 跳过: 本地已存在有效缓存 \(fileName) (\(existingSize) bytes)")
+            AppLogger.video.debug("跳过视频缓存：本地已有有效缓存 \(fileName, privacy: .public)（\(existingSize) bytes）")
             return
         }
         // 清理可能存在的脏数据
         if fm.fileExists(atPath: videoDestination.path) {
             try? fm.removeItem(at: videoDestination)
-            print("📀 [VideoManager] 清理无效本地缓存: \(fileName)")
+            AppLogger.video.info("清理无效本地视频缓存: \(fileName, privacy: .public)")
         }
 
         caching.insert(fileName)
@@ -255,25 +268,25 @@ final class VideoManager {
         await cacheThumbnail(for: sceneID, variantIndex: variantIndex)
 
         do {
-            print("📀 [VideoManager] 开始下载视频: \(videoURL)")
+            AppLogger.video.debug("开始下载视频: \(fileName, privacy: .public)")
             let (data, response) = try await URLSession.shared.data(from: videoURL)
             let httpStatus = (response as? HTTPURLResponse)?.statusCode ?? -1
-            print("📀 [VideoManager] 视频下载完成: fileName=\(fileName), httpStatus=\(httpStatus), dataSize=\(data.count) bytes")
+            AppLogger.video.debug("视频下载完成: \(fileName, privacy: .public), 状态码: \(httpStatus), 大小: \(data.count) bytes")
             // 校验 HTTP 状态码
             guard (200...299).contains(httpStatus) else {
-                print("📀 [VideoManager] 视频下载返回非 2xx 状态码 \(httpStatus)，不写入磁盘")
+                AppLogger.video.error("视频下载返回非 2xx 状态码 \(httpStatus)，不写入磁盘")
                 return
             }
             // 校验数据大小是否合理
             guard data.count >= Self.minimumVideoBytes else {
-                print("📀 [VideoManager] 视频数据过小 (\(data.count) bytes)，疑似错误响应，不写入磁盘")
+                AppLogger.video.error("视频数据过小（\(data.count) bytes），疑似错误响应，不写入磁盘")
                 return
             }
             try data.write(to: videoDestination, options: .atomic)
             cacheVersion += 1
-            print("📀 [VideoManager] 视频已写入: \(fileName)")
+            AppLogger.video.info("视频已写入缓存: \(fileName, privacy: .public)")
         } catch {
-            print("📀 [VideoManager] 缓存视频失败 \(fileName): \(error)")
+            AppLogger.video.error("缓存视频失败 \(fileName, privacy: .public): \(error.localizedDescription, privacy: .public)")
         }
     }
 
