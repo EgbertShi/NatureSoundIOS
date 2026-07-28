@@ -43,10 +43,10 @@
       "id": "zen_temple",
       "name": "禅意寺院",
       "icon": "bell.fill",
-      "description": "钟声、梵音与铜锣的冥想之境",
+      "description": "钟声、编钟与铜锣的冥想之境",
       "colorHex": "FFC107",
-      "soundIDs": ["temple_bell", "mantra", "gong"],
-      "volumes": {"mantra": 0.65, "temple_bell": 0.35, "gong": 0.3},
+      "soundIDs": ["temple_bell", "zen_bell", "gong"],
+      "volumes": {"zen_bell": 0.55, "temple_bell": 0.4, "gong": 0.3},
       "tags": ["放松", "专注"]
     },
     {

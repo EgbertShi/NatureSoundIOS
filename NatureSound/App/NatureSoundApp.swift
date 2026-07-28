@@ -36,12 +36,30 @@ struct NatureSoundApp: App {
     @UIApplicationDelegateAdaptor(AppDelegate.self) var delegate
     @AppStorage("hasSeenWelcome") private var hasSeenWelcome = false
 
+    @State private var audioManager = AudioManager()
+    @State private var timerManager = TimerManager()
+    @State private var sceneManager = SceneManager()
+    @State private var weatherService = WeatherService()
+    @State private var videoManager = VideoManager()
+
     var body: some Scene {
         WindowGroup {
             if hasSeenWelcome {
-                ContentView().transition(.opacity)
+                ContentView(
+                    audioManager: audioManager,
+                    timerManager: timerManager,
+                    sceneManager: sceneManager,
+                    weatherService: weatherService,
+                    videoManager: videoManager
+                )
+                .transition(.opacity)
             } else {
-                WelcomeView(hasSeenWelcome: $hasSeenWelcome).transition(.opacity)
+                WelcomeView(
+                    audioManager: audioManager,
+                    videoManager: videoManager,
+                    hasSeenWelcome: $hasSeenWelcome
+                )
+                .transition(.opacity)
             }
         }
     }

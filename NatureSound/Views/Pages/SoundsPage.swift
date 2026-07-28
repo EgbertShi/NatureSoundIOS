@@ -61,12 +61,17 @@ struct SoundsPage: View {
     let weatherService: WeatherService
     let videoManager: VideoManager
     @Binding var showSettings: Bool
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.horizontalSizeClass) private var sizeClass
 
     @State private var selectedCategory: SoundCategory = .all
     @State private var showLimitAlert = false
     @State private var showPlaybackFailedAlert = false
 
-    private var columns: [GridItem] { [GridItem(.adaptive(minimum: 100), spacing: 12)] }
+    private var columns: [GridItem] {
+        let minWidth: CGFloat = sizeClass == .regular ? 120 : 100
+        return [GridItem(.adaptive(minimum: minWidth), spacing: sizeClass == .regular ? 16 : 12)]
+    }
     private var filteredSounds: [SoundItem] { SoundItem.sounds(for: selectedCategory) }
 
     /// 今日推荐（场景或氛围声音，每个时段切换一次）
@@ -87,7 +92,8 @@ struct SoundsPage: View {
                     },
                     onPlaySound: { sound in
                         playRecommendedSound(sound)
-                    }
+                    },
+                    cardHeight: sizeClass == .regular ? 420 : 360
                 )
 
                 CategoryTabView(selectedCategory: $selectedCategory)
@@ -106,7 +112,7 @@ struct SoundsPage: View {
                         ) { handleSoundTap(sound) }
                     }
                 }
-                .padding(.horizontal, 20)
+                .padding(.horizontal, sizeClass == .regular ? 28 : 20)
                 .padding(.top, 8)
                 .padding(.bottom, audioManager.activeCount > 0 ? 160 : 40)
             }
@@ -144,18 +150,18 @@ struct SoundsPage: View {
                     .foregroundStyle(Theme.accent)
                 Text("已选 \(audioManager.activeCount) 种")
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(Theme.textSecondary(.light))
-                Text("·").foregroundStyle(Theme.textTertiary(.light))
+                    .foregroundStyle(Theme.textSecondary(colorScheme))
+                Text("·").foregroundStyle(Theme.textTertiary(colorScheme))
                 Text("还可添加 \(remaining) 种")
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(remaining <= 2 ? Theme.danger.opacity(0.8) : Theme.textTertiary(.light))
+                    .foregroundStyle(remaining <= 2 ? Theme.danger.opacity(0.8) : Theme.textTertiary(colorScheme))
             } else {
                 Image(systemName: "hand.tap")
                     .font(.system(size: 11))
-                    .foregroundStyle(Theme.textTertiary(.light))
+                    .foregroundStyle(Theme.textTertiary(colorScheme))
                 Text("点击声音卡片开始叠加播放")
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(Theme.textTertiary(.light))
+                    .foregroundStyle(Theme.textTertiary(colorScheme))
             }
             Spacer()
         }

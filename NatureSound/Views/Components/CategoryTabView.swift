@@ -33,6 +33,8 @@ struct CategoryChip: View {
     let isSelected: Bool
     let onTap: () -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         Button(action: onTap) {
             HStack(spacing: 5) {
@@ -43,10 +45,10 @@ struct CategoryChip: View {
             .padding(.vertical, 8)
             .background(
                 Capsule()
-                    .fill(isSelected ? Theme.accent.opacity(0.1) : Theme.inactiveFill(.light))
-                    .overlay(Capsule().stroke(isSelected ? Theme.accent.opacity(0.25) : Theme.cardBorder(.light), lineWidth: 1))
+                    .fill(isSelected ? Theme.accent.opacity(0.1) : Theme.inactiveFill(colorScheme))
+                    .overlay(Capsule().stroke(isSelected ? Theme.accent.opacity(0.25) : Theme.cardBorder(colorScheme), lineWidth: 1))
             )
-            .foregroundStyle(isSelected ? Theme.accent : Theme.textSecondary(.light))
+            .foregroundStyle(isSelected ? Theme.accent : Theme.textSecondary(colorScheme))
         }
         .buttonStyle(.plain)
     }

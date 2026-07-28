@@ -49,6 +49,29 @@ struct SoundItem: Identifiable, Hashable {
 
     func hash(into hasher: inout Hasher) { hasher.combine(id) }
     static func == (lhs: SoundItem, rhs: SoundItem) -> Bool { lhs.id == rhs.id }
+
+    // MARK: - 声音特性分类（用于空间音频声像分配和频率管理）
+
+    /// 环境基底声：雨、风、水流、火焰、雪等连续铺底声景，空间音频模式下居中分布。
+    var isAmbientBase: Bool {
+        switch category {
+        case .water, .weather, .fire, .forest:
+            return true
+        // 氛围类中的连续背景声
+        default:
+            return id == "night" || id == "grass_sway"
+        }
+    }
+
+    /// 低频强力声：含有大量低频能量的声音，叠加时需要高通滤波以避免掩盖其他声音。
+    var needsHighPassFilter: Bool {
+        switch id {
+        case "thunderstorm", "heavy_rain", "blizzard", "cold_wind", "waterfall", "flying_waterfall":
+            return true
+        default:
+            return false
+        }
+    }
 }
 
 // MARK: - 声音配置数据模型

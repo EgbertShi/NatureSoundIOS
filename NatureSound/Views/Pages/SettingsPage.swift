@@ -15,6 +15,7 @@ struct SettingsPage: View {
     @AppStorage("hasSeenWelcome") private var hasSeenWelcome = false
     @State private var showClearScenesAlert = false
     @State private var showResetWelcomeAlert = false
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         NavigationStack {
@@ -28,7 +29,7 @@ struct SettingsPage: View {
                 .padding(.horizontal, 20)
                 .padding(.bottom, 40)
             }
-            .background(Theme.settingsBg(.light).ignoresSafeArea())
+            .background(Theme.settingsBg(colorScheme).ignoresSafeArea())
             .navigationTitle("设置")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {
@@ -61,10 +62,10 @@ struct SettingsPage: View {
                 .foregroundStyle(Theme.accentGradient)
             Text("清籁")
                 .font(.system(size: 18, weight: .bold, design: .rounded))
-                .foregroundStyle(Theme.textPrimary(.light))
+                .foregroundStyle(Theme.textPrimary(colorScheme))
             Text("聆听自然 · 疗愈心灵")
                 .font(.system(size: 12))
-                .foregroundStyle(Theme.textSecondary(.light))
+                .foregroundStyle(Theme.textSecondary(colorScheme))
         }
         .padding(.top, 8)
     }
@@ -103,13 +104,13 @@ struct SettingsPage: View {
         VStack(alignment: .leading, spacing: 12) {
             sectionHeader("关于")
             VStack(spacing: 0) {
-                settingRow(icon: "info.circle.fill", iconColor: Theme.iconDefault(.light), title: "版本", trailing: "1.1")
-                Divider().background(Theme.separator(.light)).padding(.horizontal, 14)
-                settingRow(icon: "waveform.circle.fill", iconColor: Theme.iconDefault(.light), title: "声音库", trailing: "\(SoundItem.allSounds.count) 种声音")
-                Divider().background(Theme.separator(.light)).padding(.horizontal, 14)
-                settingRow(icon: "square.stack.3d.up.fill", iconColor: Theme.iconDefault(.light), title: "预设场景", trailing: "\(ScenePreset.allPresets.count) 个场景")
+                settingRow(icon: "info.circle.fill", iconColor: Theme.iconDefault(colorScheme), title: "版本", trailing: "1.1")
+                Divider().background(Theme.separator(colorScheme)).padding(.horizontal, 14)
+                settingRow(icon: "waveform.circle.fill", iconColor: Theme.iconDefault(colorScheme), title: "声音库", trailing: "\(SoundItem.allSounds.count) 种声音")
+                Divider().background(Theme.separator(colorScheme)).padding(.horizontal, 14)
+                settingRow(icon: "square.stack.3d.up.fill", iconColor: Theme.iconDefault(colorScheme), title: "预设场景", trailing: "\(ScenePreset.allPresets.count) 个场景")
             }
-            .background(RoundedRectangle(cornerRadius: 12).fill(Theme.inactiveFill(.light)))
+            .background(RoundedRectangle(cornerRadius: 12).fill(Theme.inactiveFill(colorScheme)))
         }
     }
 
@@ -117,28 +118,28 @@ struct SettingsPage: View {
     private func sectionHeader(_ title: String) -> some View {
         Text(title)
             .font(.system(size: 13, weight: .semibold))
-            .foregroundStyle(Theme.textSecondary(.light))
+            .foregroundStyle(Theme.textSecondary(colorScheme))
     }
 
     private func settingRow(icon: String, iconColor: Color, title: String, subtitle: String? = nil, trailing: String? = nil) -> some View {
         HStack {
             Image(systemName: icon).font(.system(size: 18)).foregroundStyle(iconColor)
             VStack(alignment: .leading, spacing: 2) {
-                Text(title).font(.system(size: 14, weight: .medium)).foregroundStyle(Theme.textPrimary(.light))
-                if let subtitle { Text(subtitle).font(.system(size: 11)).foregroundStyle(Theme.textSecondary(.light)) }
+                Text(title).font(.system(size: 14, weight: .medium)).foregroundStyle(Theme.textPrimary(colorScheme))
+                if let subtitle { Text(subtitle).font(.system(size: 11)).foregroundStyle(Theme.textSecondary(colorScheme)) }
             }
             Spacer()
             if let trailing {
-                Text(trailing).font(.system(size: 13, design: .monospaced)).foregroundStyle(Theme.textSecondary(.light))
+                Text(trailing).font(.system(size: 13, design: .monospaced)).foregroundStyle(Theme.textSecondary(colorScheme))
             } else {
-                Image(systemName: "chevron.right").font(.system(size: 12)).foregroundStyle(Theme.textTertiary(.light))
+                Image(systemName: "chevron.right").font(.system(size: 12)).foregroundStyle(Theme.textTertiary(colorScheme))
             }
         }
         .padding(14)
         .background(
             Group {
                 if subtitle != nil {
-                    RoundedRectangle(cornerRadius: 12).fill(Theme.inactiveFill(.light))
+                    RoundedRectangle(cornerRadius: 12).fill(Theme.inactiveFill(colorScheme))
                 } else {
                     Color.clear
                 }

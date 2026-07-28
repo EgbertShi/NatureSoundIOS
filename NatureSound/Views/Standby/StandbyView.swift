@@ -175,8 +175,9 @@ struct StandbyView: View {
 
     // MARK: - 竖屏布局
     private func portraitBody(w: CGFloat, h: CGFloat, topInset: CGFloat) -> some View {
-        // 控制面板最大宽度限制，避免在大屏上过宽
-        let controlWidth = min(w - 32, 380.0)
+        // 控制面板最大宽度：iPad 上适当放宽，避免面板过窄
+        let isWideScreen = w > 600
+        let controlWidth = min(w - 32, isWideScreen ? 520.0 : 380.0)
 
         return ZStack {
             // 时钟居中
@@ -239,7 +240,8 @@ struct StandbyView: View {
     private func landscapeBody(w: CGFloat, h: CGFloat, topInset: CGFloat) -> some View {
         let leadingInset = windowSafeLeading
         let trailingInset = windowSafeTrailing
-        let sideW = min(300.0, w * 0.4)
+        let isWideScreen = w > 900
+        let sideW = min(isWideScreen ? 420.0 : 300.0, w * 0.4)
         let clockAreaW = w - (showControls ? sideW : 0)
 
         return ZStack {

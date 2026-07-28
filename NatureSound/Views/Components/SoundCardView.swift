@@ -14,6 +14,7 @@ struct SoundCardView: View {
     let isDisabled: Bool
     let onTap: () -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
     @State private var isPressed = false
 
     var body: some View {
@@ -30,7 +31,7 @@ struct SoundCardView: View {
 
                 Text(sound.name)
                     .font(.system(size: 11, weight: .medium))
-                    .foregroundStyle(isActive ? sound.color : Theme.textPrimary(.light).opacity(isDisabled ? 0.5 : 1))
+                    .foregroundStyle(isActive ? sound.color : Theme.textPrimary(colorScheme).opacity(isDisabled ? 0.5 : 1))
                     .lineLimit(1)
             }
             .frame(maxWidth: .infinity)
@@ -38,7 +39,7 @@ struct SoundCardView: View {
             .padding(.horizontal, 6)
             .background(
                 RoundedRectangle(cornerRadius: 10, style: .continuous)
-                    .fill(isActive ? sound.color.opacity(0.08) : Theme.cardFill(.light))
+                    .fill(isActive ? sound.color.opacity(0.08) : Theme.cardFill(colorScheme))
                     .overlay(
                         RoundedRectangle(cornerRadius: 10, style: .continuous)
                             .stroke(isActive ? sound.color.opacity(0.26) : .clear, lineWidth: 1)

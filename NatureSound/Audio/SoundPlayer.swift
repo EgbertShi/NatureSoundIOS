@@ -27,6 +27,11 @@ private enum PlaybackMode {
     static func forSound(_ sound: SoundItem, duration: Double) -> PlaybackMode {
         let cat = sound.category.rawValue
 
+        // 海浪：改为间歇循环，每次浪之间有随机间隔，避免节奏完全一致
+        if sound.id == "shallow_waves" {
+            return .intermittent(minGap: 0.8, maxGap: 3.5, volumeJitter: 0.12)
+        }
+
         // 鸟鸣：短录音（单次叫声）间歇更长，长录音（鸟鸣合奏）间歇短
         if cat == "鸟鸣" {
             if duration < 5 {
@@ -101,6 +106,16 @@ final class SoundPlayer: Identifiable {
     // AVAudioPlayer：原生支持后台播放、无限循环、音量和声道控制
     private var audioPlayer: AVAudioPlayer?
 
+    // AVAudioEngine + 高通滤波器：仅用于低频强力声（暴雨、瀑布等），
+    // 叠加播放时切除过低频以避免掩盖其他声音
+    private var audioEngine: AVAudioEngine?
+    private var highPassFilter: AVAudioUnitEQ?
+    /// 当使用 AVAudioEngine 时，播放器挂载在 engine 上而非直接播放
+    private var usesAudioEngine: Bool { audioEngine != nil }
+
+    // 弱引用 AudioManager，用于间歇声协调
+    weak var coordinator: AudioManager?
+
     // 音量渐变
     private var fadeTimer: Timer?
     private var targetVolume: Float = 0
@@ -140,42 +155,51 @@ final class SoundPlayer: Identifiable {
             return false
         }
 
-        do {
-            let player = try AVAudioPlayer(contentsOf: url)
-            audioDuration = player.duration
-            playbackMode = PlaybackMode.forSound(sound, duration: audioDuration)
+            do {
+                let player = try AVAudioPlayer(contentsOf: url)
+                audioDuration = player.duration
+                playbackMode = PlaybackMode.forSound(sound, duration: audioDuration)
 
-            switch playbackMode {
-            case .continuous:
-                player.numberOfLoops = -1
-            case .intermittent:
-                player.numberOfLoops = 0   // 播放一次即停
-            }
-
-            player.volume = 0               // 从 0 开始，渐入
-            player.pan = pan                // 声道平衡
-
-            // 间歇模式：随机起始位置（避免每次都从同一个点开始）
-            if case .intermittent = playbackMode, audioDuration > 1.0 {
-                let maxOffset = max(0, audioDuration - 0.5)
-                player.currentTime = Double.random(in: 0...maxOffset)
-            }
-
-            player.prepareToPlay()
-
-            // 先持有引用，防止 ARC 提前释放
-            audioPlayer = player
-
-            // 间歇模式：设置 delegate 监听播放结束
-            if case .intermittent = playbackMode {
-                let bridge = PlayerDelegateBridge { [weak self] in
-                    self?.onIntermittentPlaybackFinished()
+                switch playbackMode {
+                case .continuous:
+                    player.numberOfLoops = -1
+                case .intermittent:
+                    player.numberOfLoops = 0   // 播放一次即停
                 }
-                delegateBridge = bridge
-                player.delegate = bridge
-            }
 
-            if player.play() {
+                player.volume = 0               // 从 0 开始，渐入
+                player.pan = pan                // 声道平衡
+
+                // 间歇模式：随机起始位置（避免每次都从同一个点开始）
+                if case .intermittent = playbackMode, audioDuration > 1.0 {
+                    let maxOffset = max(0, audioDuration - 0.5)
+                    player.currentTime = Double.random(in: 0...maxOffset)
+                }
+
+                player.prepareToPlay()
+
+                // 先持有引用，防止 ARC 提前释放
+                audioPlayer = player
+
+                // 间歇模式：设置 delegate 监听播放结束
+                if case .intermittent = playbackMode {
+                    let bridge = PlayerDelegateBridge { [weak self] in
+                        self?.onIntermittentPlaybackFinished()
+                    }
+                    delegateBridge = bridge
+                    player.delegate = bridge
+                }
+
+                // 低频强力声：通过 AVAudioEngine 挂载高通滤波器，
+                // 切除 80Hz 以下能量避免在叠加时掩盖其他中高频声音
+                let playStarted: Bool
+                if sound.needsHighPassFilter {
+                    playStarted = startWithHighPassFilter(player)
+                } else {
+                    playStarted = player.play()
+                }
+
+                if playStarted {
                 isPlaying = true
                 let vol = effectiveVolume ?? self.volume
                 currentEffectiveVolume = vol
@@ -209,7 +233,11 @@ final class SoundPlayer: Identifiable {
             case .intermittent:
                 player.numberOfLoops = 0
             }
-            player.play()
+            if usesAudioEngine {
+                try? audioEngine?.start()
+            } else {
+                player.play()
+            }
         }
     }
 
@@ -222,6 +250,9 @@ final class SoundPlayer: Identifiable {
         gapTimer = nil
         delegateBridge = nil
         audioPlayer?.delegate = nil
+        audioEngine?.stop()
+        audioEngine = nil
+        highPassFilter = nil
         audioPlayer?.stop()
         audioPlayer = nil
     }
@@ -233,7 +264,11 @@ final class SoundPlayer: Identifiable {
         gapTimer?.invalidate()
         gapTimer = nil
         volumeBeforePause = targetVolume
-        audioPlayer?.pause()
+        if usesAudioEngine {
+            audioEngine?.pause()
+        } else {
+            audioPlayer?.pause()
+        }
     }
 
     /// 恢复由 pausePlayback() 暂停的播放。
@@ -241,7 +276,11 @@ final class SoundPlayer: Identifiable {
         guard isPlaying, let player = audioPlayer else { return }
         AudioSessionConfig.configure()
         player.volume = volumeBeforePause
-        player.play()
+        if usesAudioEngine {
+            try? audioEngine?.start()
+        } else {
+            player.play()
+        }
         targetVolume = volumeBeforePause
         currentEffectiveVolume = volumeBeforePause
 
@@ -255,13 +294,22 @@ final class SoundPlayer: Identifiable {
     func updateVolume(_ v: Float) {
         targetVolume = v
         currentEffectiveVolume = v
-        audioPlayer?.volume = v
+        if usesAudioEngine {
+            audioEngine?.mainMixerNode.outputVolume = v
+        } else {
+            audioPlayer?.volume = v
+        }
     }
 
     /// 更新声道平衡
     func updatePan(_ p: Float) {
         pan = max(-1.0, min(1.0, p))
-        audioPlayer?.pan = pan
+        if usesAudioEngine {
+            // AVAudioEngine 模式下通过 mixer 的 pan 属性控制
+            audioEngine?.mainMixerNode.pan = pan
+        } else {
+            audioPlayer?.pan = pan
+        }
     }
 
     // MARK: - 间歇播放调度
@@ -272,7 +320,8 @@ final class SoundPlayer: Identifiable {
         scheduleNextIntermittentPlay()
     }
 
-    /// 安排下一次间歇播放：随机等待后重新播放
+    /// 安排下一次间歇播放：随机等待后重新播放。
+    /// 接入 AudioManager 的协调机制，避免多个间歇声同时触发。
     private func scheduleNextIntermittentPlay() {
         guard isPlaying, case let .intermittent(minGap, maxGap, _) = playbackMode else { return }
 
@@ -291,6 +340,20 @@ final class SoundPlayer: Identifiable {
         guard isPlaying, let player = audioPlayer,
               case let .intermittent(_, _, volumeJitter) = playbackMode else { return }
 
+        // 间歇声协调：检查距上一次触发是否足够远，不够则额外等待
+        if let coordinator, coordinator.intermittentSpacingDelay() > 0 {
+            let delay = coordinator.intermittentSpacingDelay()
+            let timer = Timer(timeInterval: delay, repeats: false) { [weak self] _ in
+                self?.startNextIntermittentCycle()
+            }
+            RunLoop.main.add(timer, forMode: .common)
+            gapTimer = timer
+            return
+        }
+
+        // 标记触发时间戳
+        coordinator?.markIntermittentTrigger()
+
         gapTimer = nil
 
         // 随机微调音量（在当前有效音量基础上 ±jitter）
@@ -306,10 +369,76 @@ final class SoundPlayer: Identifiable {
 
         player.volume = 0
         player.numberOfLoops = 0
-        player.play()
+        if usesAudioEngine {
+            try? audioEngine?.start()
+        } else {
+            player.play()
+        }
 
         // 短淡入，避免突然出声
         fadeVolume(to: jitteredVolume, duration: 0.3)
+    }
+
+    // MARK: - 低频强力声的高通滤波处理
+
+    /// 通过 AVAudioEngine 挂载高通滤波器后启动播放。
+    /// 切除 80Hz 以下低频能量，避免暴雨、瀑布等声音在叠加时掩盖中高频声音。
+    private func startWithHighPassFilter(_ player: AVAudioPlayer) -> Bool {
+        // 先加载 buffer，拿到音频实际格式（声道数、采样率）
+        guard let buffer = loadBuffer(from: player) else {
+            AppLogger.audio.error("高通滤波模式：加载音频 buffer 失败: \(self.sound.fileName, privacy: .public)")
+            return false
+        }
+
+        let format = buffer.format
+        let engine = AVAudioEngine()
+
+        // 高通滤波器：80Hz 以下以 -12dB/oct 衰减
+        let hp = AVAudioUnitEQ(numberOfBands: 1)
+        hp.bands[0].filterType = .highPass
+        hp.bands[0].frequency = 80
+        hp.bands[0].bypass = false
+
+        let playerNode = AVAudioPlayerNode()
+        engine.attach(playerNode)
+        engine.attach(hp)
+        // 用 buffer 的实际格式连接，避免声道数不匹配崩溃
+        engine.connect(playerNode, to: hp, format: format)
+        engine.connect(hp, to: engine.mainMixerNode, format: format)
+
+        playerNode.scheduleBuffer(buffer, at: nil, options: .loops, completionHandler: nil)
+
+        do {
+            try engine.start()
+            playerNode.play()
+            audioEngine = engine
+            highPassFilter = hp
+            return true
+        } catch {
+            AppLogger.audio.error("AVAudioEngine 启动失败: \(error.localizedDescription, privacy: .public)")
+            return false
+        }
+    }
+
+    /// 从音频文件加载 PCM buffer（用于 AVAudioEngine 的 playerNode 播放）
+    private func loadBuffer(from player: AVAudioPlayer) -> AVAudioPCMBuffer? {
+        let subdirectory = "Sounds/\(sound.category.rawValue)"
+        guard let url = Bundle.main.url(forResource: sound.fileName, withExtension: "m4a", subdirectory: subdirectory)
+            ?? Bundle.main.url(forResource: sound.fileName, withExtension: "m4a") else { return nil }
+        guard let audioFile = try? AVAudioFile(forReading: url) else { return nil }
+
+        let format = audioFile.processingFormat
+        let frameCount = AVAudioFrameCount(audioFile.length)
+        guard frameCount > 0,
+              let buffer = AVAudioPCMBuffer(pcmFormat: format, frameCapacity: frameCount) else { return nil }
+
+        do {
+            try audioFile.read(into: buffer)
+            return buffer
+        } catch {
+            AppLogger.audio.error("读取音频 buffer 失败: \(error.localizedDescription, privacy: .public)")
+            return nil
+        }
     }
 
     // MARK: - 内部实现
@@ -317,16 +446,30 @@ final class SoundPlayer: Identifiable {
     private func fadeVolume(to target: Float, duration: Double, completion: (() -> Void)? = nil) {
         fadeTimer?.invalidate()
         targetVolume = target
-        let start = audioPlayer?.volume ?? 0
+        let start: Float
+        if usesAudioEngine {
+            start = audioEngine?.mainMixerNode.outputVolume ?? 0
+        } else {
+            start = audioPlayer?.volume ?? 0
+        }
         let steps = max(1, Int(duration * 60))
         var currentStep = 0
         let timer = Timer(timeInterval: duration / Double(steps), repeats: true) { [weak self] t in
             guard let self else { t.invalidate(); return }
             currentStep += 1
             let progress = Float(currentStep) / Float(steps)
-            self.audioPlayer?.volume = start + (target - start) * progress
+            let vol = start + (target - start) * progress
+            if self.usesAudioEngine {
+                self.audioEngine?.mainMixerNode.outputVolume = vol
+            } else {
+                self.audioPlayer?.volume = vol
+            }
             if currentStep >= steps {
-                self.audioPlayer?.volume = target
+                if self.usesAudioEngine {
+                    self.audioEngine?.mainMixerNode.outputVolume = target
+                } else {
+                    self.audioPlayer?.volume = target
+                }
                 t.invalidate()
                 self.fadeTimer = nil
                 completion?()

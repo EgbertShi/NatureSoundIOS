@@ -22,6 +22,8 @@ struct AmbianceCard: View {
     let onPlayScene: (ScenePreset) -> Void
     /// 播放指定单个声音
     let onPlaySound: (SoundItem) -> Void
+    /// 卡片高度（外部根据 iPhone/iPad 传入）
+    var cardHeight: CGFloat = 360
 
     // MARK: - 与 StandbyView 共享的沉浸模式选择（@AppStorage）
     // 确保首页卡片视频与沉浸模式场景视频使用同一场景、同一变体，保持两端同步。
@@ -42,6 +44,12 @@ struct AmbianceCard: View {
 
     /// 根据当前时段和天气选取的背景图片名称（稳定值，视图存续期间不随机变化）
     @State private var currentImageName = DayPeriod.current().ambianceImageName(weather: nil)
+
+    /// 仅在当前没有播放内容时展示，让回访用户可以一键恢复完整场景。
+    private var lastPreset: ScenePreset? {
+        guard audioManager.activeCount == 0 else { return nil }
+        return ScenePlaybackCoordinator.lastPreset
+    }
 
     /// 当前播放声音匹配到的预设场景（仅当场景有视频/缩略图资源时返回）
     /// 优先使用 AudioManager 记录的当前场景（由场景页 applyPreset 或推荐播放设置），
@@ -97,15 +105,21 @@ struct AmbianceCard: View {
                     .padding(.horizontal, 20)
                     .padding(.top, 10)
 
-                    // 今日推荐行（场景或氛围声音）
-                    recommendationRow
-                        .padding(.horizontal, 20)
-                        .padding(.top, 16)
-                        .padding(.bottom, 22)
+                    // 回访用户优先看到完整恢复入口；首次使用或无历史时展示今日推荐。
+                    if let lastPreset {
+                        resumeLastSceneRow(lastPreset)
+                            .padding(.horizontal, 20)
+                            .padding(.top, 16)
+                            .padding(.bottom, 22)
+                    } else {
+                        recommendationRow
+                            .padding(.horizontal, 20)
+                            .padding(.top, 16)
+                            .padding(.bottom, 22)
+                    }
                 }
             }
         }
-        .frame(height: 360)
         .clipShape(RoundedRectangle(cornerRadius: 0))
         .animation(.easeInOut(duration: 0.5), value: weather)
         .animation(.easeInOut(duration: 0.4), value: matchedScene?.id)
@@ -127,7 +141,47 @@ struct AmbianceCard: View {
         currentImageName = period.ambianceImageName(weather: weather)
     }
 
-    // MARK: - 今日推荐行（场景或氛围声音）
+    // MARK: - 继续上次 / 今日推荐
+
+    private func resumeLastSceneRow(_ preset: ScenePreset) -> some View {
+        Button {
+            Haptics.medium()
+            onPlayScene(preset)
+        } label: {
+            HStack(spacing: 12) {
+                ZStack {
+                    Circle()
+                        .fill(Color.white.opacity(0.2))
+                        .frame(width: 38, height: 38)
+                    Image(systemName: "arrow.counterclockwise")
+                        .font(.system(size: 16, weight: .semibold))
+                        .foregroundStyle(.white)
+                }
+
+                VStack(alignment: .leading, spacing: 5) {
+                    Text("继续上次")
+                        .font(.system(size: 10, weight: .semibold))
+                        .foregroundStyle(Color(hex: "FFD54F"))
+                    Text(preset.name)
+                        .font(.system(size: 14, weight: .bold))
+                        .foregroundStyle(.white)
+                }
+
+                Spacer()
+
+                Text("恢复播放")
+                    .font(.system(size: 13, weight: .semibold))
+                    .foregroundStyle(.white)
+                    .padding(.horizontal, 14)
+                    .padding(.vertical, 8)
+                    .background(Capsule().fill(Color.white.opacity(0.2)))
+                    .overlay(Capsule().stroke(Color.white.opacity(0.3), lineWidth: 1))
+            }
+        }
+        .buttonStyle(.plain)
+        .accessibilityLabel("继续上次播放：\(preset.name)")
+        .accessibilityHint("双击后恢复该场景的声音与音量")
+    }
 
     @ViewBuilder
     private var recommendationRow: some View {
@@ -283,6 +337,8 @@ struct AmbianceCard: View {
                     isActive: true,
                     previewImage: videoManager.cachedThumbnailImage(for: scene.id, variantIndex: variant)
                 )
+                .frame(height: cardHeight)
+                .clipped()
                 // 场景切换时强制重建 UIView，确保旧场景的 AVPlayerLayer 被完全移除（dismantleUIView → cleanup），
                 // 避免复用同一 UIView 时旧视频画面残留与新场景画面同时出现。
                 .id(scene.id)
@@ -290,14 +346,14 @@ struct AmbianceCard: View {
                 Image(uiImage: thumbnail)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(height: 360)
+                    .frame(height: cardHeight)
                     .clipped()
             } else {
                 // 无缩略图时使用当前时段氛围图兜底，叠加场景主题色遮罩
                 Image(currentImageName.isEmpty ? DayPeriod.current().ambianceImageName : currentImageName)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(height: 360)
+                    .frame(height: cardHeight)
                     .clipped()
                     .overlay(scene.color.opacity(0.25))
             }
@@ -357,7 +413,7 @@ struct AmbianceCard: View {
                 Image(currentImageName)
                     .resizable()
                     .aspectRatio(contentMode: .fill)
-                    .frame(height: 360)
+                    .frame(height: cardHeight)
                     .clipped()
             } else {
                 Color(hex: "1C2833")

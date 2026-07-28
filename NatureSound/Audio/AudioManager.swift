@@ -57,6 +57,26 @@ final class AudioManager {
     private var surroundTimer: Foundation.Timer?
     private var surroundPhase: Double = 0
 
+    // MARK: - 间歇声协调
+    /// 记录最近一次间歇声触发的时间戳，用于错开多个间歇声的触发时机
+    private var lastIntermittentTriggerTime: Date?
+    /// 间歇声最小间隔（秒），避免多个间歇声同时触发
+    private static let intermittentMinSpacing: Double = 1.5
+
+    /// 间歇声触发前调用：检查距离上一次触发是否足够远，返回需要额外等待的秒数。
+    /// 返回 0 表示可以立即触发。
+    func intermittentSpacingDelay() -> Double {
+        guard let last = lastIntermittentTriggerTime else { return 0 }
+        let elapsed = Date().timeIntervalSince(last)
+        let remaining = Self.intermittentMinSpacing - elapsed
+        return max(0, remaining)
+    }
+
+    /// 间歇声实际触发后调用，更新时间戳。
+    func markIntermittentTrigger() {
+        lastIntermittentTriggerTime = Date()
+    }
+
     /// Now Playing 封面图片（锁屏展示用）
     private var nowPlayingArtwork: UIImage?
 
@@ -106,6 +126,7 @@ final class AudioManager {
         guard canAddMore else { return false }
         let player = SoundPlayer(sound: sound)
         player.volume = volume
+        player.coordinator = self  // 间歇声协调引用
         let started = player.start(effectiveVolume: volume * masterVolume)
         guard started else {
             // 播放失败（文件缺失/AVAudioPlayer 初始化失败等）：不把这个"僵尸"
@@ -169,7 +190,8 @@ final class AudioManager {
     }
 
     func applyFadeOut(progress: Float) {
-        let multiplier = 1.0 - progress
+        // 使用指数曲线（平方），前半段缓慢衰减、后半段加速收尾，听感更自然
+        let multiplier = pow(max(0, 1.0 - progress), 2.0)
         for player in activePlayers { player.updateVolume(player.volume * masterVolume * multiplier) }
     }
 
@@ -227,7 +249,9 @@ final class AudioManager {
         }
     }
 
-    /// 将当前所有活跃声音的声道从左 -0.8 到右 0.8 均匀分布。
+    /// 按声音特性分配声像位置。
+    /// 环境基底声（雨、风、水流、火焰等）居中铺底；
+    /// 点状声源（鸟鸣、虫鸣、钟声等）分散到左右两侧。
     func redistributePans() {
         let count = activePlayers.count
         guard count > 0 else { return }
@@ -235,10 +259,38 @@ final class AudioManager {
             activePlayers[0].updatePan(0)
             return
         }
+
+        // 将声音分为两组：基底声（居中）和点状声（分散）
+        var baseIndices: [Int] = []
+        var pointIndices: [Int] = []
         for (index, player) in activePlayers.enumerated() {
-            let t = Float(index) / Float(count - 1)   // 0...1
-            let pan = -0.8 + t * 1.6                    // -0.8...0.8
-            player.updatePan(pan)
+            if player.sound.isAmbientBase {
+                baseIndices.append(index)
+            } else {
+                pointIndices.append(index)
+            }
+        }
+
+        // 基底声在 -0.2...0.2 之间窄幅分布
+        for (i, idx) in baseIndices.enumerated() {
+            if baseIndices.count == 1 {
+                activePlayers[idx].updatePan(0)
+            } else {
+                let t = Float(i) / Float(baseIndices.count - 1)
+                let pan = -0.2 + t * 0.4
+                activePlayers[idx].updatePan(pan)
+            }
+        }
+
+        // 点状声在 -0.8...0.8 之间宽幅分布
+        for (i, idx) in pointIndices.enumerated() {
+            if pointIndices.count == 1 {
+                activePlayers[idx].updatePan(0)
+            } else {
+                let t = Float(i) / Float(pointIndices.count - 1)
+                let pan = -0.8 + t * 1.6
+                activePlayers[idx].updatePan(pan)
+            }
         }
     }
 
@@ -248,7 +300,8 @@ final class AudioManager {
     private func startSurroundMotion() {
         stopSurroundMotion()
         surroundPhase = 0
-        let timer = Foundation.Timer(timeInterval: 1.0 / 30.0, repeats: true) { [weak self] _ in
+        // 10fps 足够人耳感知声像变化，降低整夜播放时的 CPU 和电量消耗
+        let timer = Foundation.Timer(timeInterval: 1.0 / 10.0, repeats: true) { [weak self] _ in
             self?.tickSurround()
         }
         RunLoop.main.add(timer, forMode: .common)
@@ -261,7 +314,7 @@ final class AudioManager {
     }
 
     private func tickSurround() {
-        surroundPhase += 1.0 / 30.0
+        surroundPhase += 1.0 / 10.0
         for (index, player) in activePlayers.enumerated() {
             // 每个声音使用不同频率与相位偏移，避免声像同步
             let freq = 0.05 + Double(index) * 0.02      // 慢速运动，0.05~0.17 Hz

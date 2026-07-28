@@ -97,6 +97,8 @@ struct SceneCard: View {
     let preset: ScenePreset
     let onTap: () -> Void
 
+    @Environment(\.colorScheme) private var colorScheme
+
     var body: some View {
         Button(action: onTap) {
             VStack(alignment: .leading, spacing: 10) {
@@ -107,28 +109,28 @@ struct SceneCard: View {
                     Spacer()
                     Text("\(preset.soundIDs.count) 种声音")
                         .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(Theme.textTertiary(.light))
+                        .foregroundStyle(Theme.textTertiary(colorScheme))
                 }
 
                 Text(preset.name)
                     .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Theme.textPrimary(.light))
+                    .foregroundStyle(Theme.textPrimary(colorScheme))
 
                 Text(preset.description)
                     .font(.system(size: 11))
-                    .foregroundStyle(Theme.textSecondary(.light))
+                    .foregroundStyle(Theme.textSecondary(colorScheme))
                     .lineLimit(2)
                     .frame(maxWidth: .infinity, alignment: .leading)
                     .frame(height: 30, alignment: .top)
 
-                soundIconStack(soundIDs: preset.soundIDs, maxIcons: 5, iconSize: 20, borderColor: Theme.cardBorder(.light))
+                soundIconStack(soundIDs: preset.soundIDs, maxIcons: 5, iconSize: 20, borderColor: Theme.cardBorder(colorScheme))
             }
             .padding(14)
             .frame(minHeight: 152)
             .background(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Theme.cardFill(.light))
-                    .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Theme.cardBorder(.light), lineWidth: 1))
+                    .fill(Theme.cardFill(colorScheme))
+                    .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(Theme.cardBorder(colorScheme), lineWidth: 1))
                     .shadow(color: .black.opacity(0.04), radius: 8, y: 3)
             )
         }
@@ -144,6 +146,8 @@ struct UserSceneCard: View {
     let onRename: () -> Void
 
     private let cardColor = Color(hex: "FFD54F")
+
+    @Environment(\.colorScheme) private var colorScheme
 
     private var iconSize: CGFloat {
         let count = scene.soundIDs.count
@@ -162,32 +166,32 @@ struct UserSceneCard: View {
                     Spacer()
                     Text("\(scene.soundIDs.count) 种声音")
                         .font(.system(size: 10, weight: .medium))
-                        .foregroundStyle(Theme.textTertiary(.light))
+                        .foregroundStyle(Theme.textTertiary(colorScheme))
                 }
 
                 Text(scene.name)
                     .font(.system(size: 15, weight: .semibold))
-                    .foregroundStyle(Theme.textPrimary(.light))
+                    .foregroundStyle(Theme.textPrimary(colorScheme))
                     .lineLimit(1)
 
                 Text("自定义场景")
                     .font(.system(size: 11))
-                    .foregroundStyle(Theme.textSecondary(.light))
+                    .foregroundStyle(Theme.textSecondary(colorScheme))
 
                 HStack(spacing: 0) {
-                    soundIconStack(soundIDs: scene.soundIDs, maxIcons: 7, iconSize: iconSize, borderColor: Theme.cardBorder(.light))
+                    soundIconStack(soundIDs: scene.soundIDs, maxIcons: 7, iconSize: iconSize, borderColor: Theme.cardBorder(colorScheme))
                     Spacer(minLength: 8)
                     Button(action: onRename) {
                         Image(systemName: "pencil")
                             .font(.system(size: 12))
-                            .foregroundStyle(Theme.textTertiary(.light))
+                            .foregroundStyle(Theme.textTertiary(colorScheme))
                             .frame(width: 28, height: 28)
                     }
                     .buttonStyle(.plain)
                     Button(action: onDelete) {
                         Image(systemName: "trash")
                             .font(.system(size: 13))
-                            .foregroundStyle(Theme.textTertiary(.light))
+                            .foregroundStyle(Theme.textTertiary(colorScheme))
                             .frame(width: 28, height: 28)
                     }
                     .buttonStyle(.plain)
@@ -197,7 +201,7 @@ struct UserSceneCard: View {
             .frame(minHeight: 152)
             .background(
                 RoundedRectangle(cornerRadius: 16, style: .continuous)
-                    .fill(Theme.cardFill(.light))
+                    .fill(Theme.cardFill(colorScheme))
                     .overlay(RoundedRectangle(cornerRadius: 16, style: .continuous).stroke(cardColor.opacity(0.2), lineWidth: 1))
                     .shadow(color: .black.opacity(0.04), radius: 8, y: 3)
             )

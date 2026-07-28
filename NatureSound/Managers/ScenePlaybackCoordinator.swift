@@ -12,6 +12,8 @@ import SwiftUI
 /// 统一应用预设场景与同步锁屏封面，避免多个页面重复维护同一播放流程。
 @MainActor
 struct ScenePlaybackCoordinator {
+    static let lastPresetIDKey = "NatureSound_LastPresetID"
+
     let audioManager: AudioManager
     let videoManager: VideoManager?
 
@@ -26,7 +28,14 @@ struct ScenePlaybackCoordinator {
             guard let sound = SoundItem.allSounds.first(where: { $0.id == soundID }) else { continue }
             audioManager.addSound(sound, volume: scene.volumes[soundID] ?? 0.7)
         }
+        UserDefaults.standard.set(scene.id, forKey: Self.lastPresetIDKey)
         updateNowPlaying(for: scene)
+    }
+
+    /// 用户最近一次完整播放的预设场景，用于首页的“继续上次”。
+    static var lastPreset: ScenePreset? {
+        guard let id = UserDefaults.standard.string(forKey: lastPresetIDKey) else { return nil }
+        return ScenePreset.allPresets.first { $0.id == id }
     }
 
     func apply(_ scene: UserScene) {

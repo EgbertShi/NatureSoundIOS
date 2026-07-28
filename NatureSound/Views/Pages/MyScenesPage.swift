@@ -12,6 +12,7 @@ struct MyScenesPage: View {
     let audioManager: AudioManager
     let sceneManager: SceneManager
     @Binding var showSettings: Bool
+    @Environment(\.colorScheme) private var colorScheme
     @State private var sceneToDelete: UserScene?
     @State private var sceneToRename: UserScene?
     @State private var renameText = ""
@@ -24,10 +25,10 @@ struct MyScenesPage: View {
                     VStack(alignment: .leading, spacing: 2) {
                         Text("我的")
                             .font(.system(size: 28, weight: .bold, design: .rounded))
-                            .foregroundStyle(Theme.textPrimary(.light))
+                            .foregroundStyle(Theme.textPrimary(colorScheme))
                         Text("保存你的专属声音组合")
                             .font(.system(size: 12, weight: .medium))
-                            .foregroundStyle(Theme.textTertiary(.light))
+                            .foregroundStyle(Theme.textTertiary(colorScheme))
                     }
                     Spacer()
                     Button {
@@ -36,9 +37,9 @@ struct MyScenesPage: View {
                     } label: {
                         Image(systemName: "gearshape")
                             .font(.system(size: 16, weight: .medium))
-                            .foregroundStyle(Theme.iconDefault(.light))
+                            .foregroundStyle(Theme.iconDefault(colorScheme))
                             .frame(width: 36, height: 36)
-                            .background(Circle().fill(Theme.inactiveFill(.light)))
+                            .background(Circle().fill(Theme.inactiveFill(colorScheme)))
                     }
                     .buttonStyle(.plain)
                 }
@@ -50,7 +51,7 @@ struct MyScenesPage: View {
                 } else {
                     Text("我的场景")
                         .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(Theme.textSecondary(.light))
+                        .foregroundStyle(Theme.textSecondary(colorScheme))
                         .padding(.horizontal, 20)
 
                     LazyVGrid(columns: [GridItem(.adaptive(minimum: 150), spacing: 12)], spacing: 12) {
@@ -68,6 +69,7 @@ struct MyScenesPage: View {
             }
             .padding(.bottom, audioManager.activeCount > 0 ? 160 : 40)
         }
+        .ignoresSafeArea(edges: .top)
         .alert("删除场景", isPresented: Binding(get: { sceneToDelete != nil }, set: { if !$0 { sceneToDelete = nil } })) {
             Button("删除", role: .destructive) {
                 if let scene = sceneToDelete {
@@ -97,13 +99,13 @@ struct MyScenesPage: View {
         VStack(spacing: 16) {
             Image(systemName: "star")
                 .font(.system(size: 44))
-                .foregroundStyle(Theme.textTertiary(.light).opacity(0.5))
+                .foregroundStyle(Theme.textTertiary(colorScheme).opacity(0.5))
             Text("还没有保存的场景")
                 .font(.system(size: 16, weight: .medium))
-                .foregroundStyle(Theme.textSecondary(.light))
+                .foregroundStyle(Theme.textSecondary(colorScheme))
             Text("在播放器中点击「保存为场景」\n即可在这里找到你的专属组合")
                 .font(.system(size: 13))
-                .foregroundStyle(Theme.textTertiary(.light))
+                .foregroundStyle(Theme.textTertiary(colorScheme))
                 .multilineTextAlignment(.center)
         }
         .frame(maxWidth: .infinity)

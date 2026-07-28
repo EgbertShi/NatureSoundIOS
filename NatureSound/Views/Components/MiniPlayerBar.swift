@@ -12,6 +12,7 @@ struct MiniPlayerBar: View {
     let audioManager: AudioManager
     let timerManager: TimerManager
     @State private var animatePulse = false
+    @Environment(\.colorScheme) private var colorScheme
 
     var body: some View {
         HStack(spacing: 12) {
@@ -24,7 +25,7 @@ struct MiniPlayerBar: View {
                             .font(.system(size: 13))
                             .foregroundStyle(.white)
                     }
-                    .overlay(Circle().stroke(Theme.tabBarFill(.light), lineWidth: 2))
+                    .overlay(Circle().stroke(Theme.tabBarFill(colorScheme), lineWidth: 2))
                     .scaleEffect(animatePulse ? 1.05 : 1.0)
                 }
             }
@@ -35,11 +36,11 @@ struct MiniPlayerBar: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("\(audioManager.activeCount) 种声音混合中")
                     .font(.system(size: 14, weight: .semibold))
-                    .foregroundStyle(Theme.textPrimary(.light))
+                    .foregroundStyle(Theme.textPrimary(colorScheme))
                 if audioManager.isPaused {
                     Text("已暂停，点击继续")
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Theme.textTertiary(.light))
+                        .foregroundStyle(Theme.textTertiary(colorScheme))
                 } else if timerManager.isActive {
                     Text(timerManager.displayTime + " 后停止")
                         .font(.system(size: 11, weight: .medium, design: .monospaced))
@@ -47,7 +48,7 @@ struct MiniPlayerBar: View {
                 } else {
                     Text("点击进入沉浸模式")
                         .font(.system(size: 11, weight: .medium))
-                        .foregroundStyle(Theme.textTertiary(.light))
+                        .foregroundStyle(Theme.textTertiary(colorScheme))
                 }
             }
 
@@ -73,14 +74,14 @@ struct MiniPlayerBar: View {
 
             Image(systemName: "chevron.up")
                 .font(.system(size: 14, weight: .semibold))
-                .foregroundStyle(Theme.textTertiary(.light))
+                .foregroundStyle(Theme.textTertiary(colorScheme))
         }
         .padding(.horizontal, 16)
         .padding(.vertical, 12)
         .background(
             RoundedRectangle(cornerRadius: 20)
                 .fill(.ultraThinMaterial)
-                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Theme.cardBorder(.light), lineWidth: 0.5))
+                .overlay(RoundedRectangle(cornerRadius: 20).stroke(Theme.cardBorder(colorScheme), lineWidth: 0.5))
                 .shadow(color: .black.opacity(0.1), radius: 20, y: -5)
         )
     }

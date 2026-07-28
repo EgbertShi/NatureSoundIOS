@@ -13,6 +13,8 @@ struct ScenesPage: View {
     let sceneManager: SceneManager
     let videoManager: VideoManager
     @Binding var showSettings: Bool
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.horizontalSizeClass) private var sizeClass
 
     @State private var selectedTag: SceneTag?
 
@@ -40,10 +42,10 @@ struct ScenesPage: View {
             VStack(alignment: .leading, spacing: 2) {
                 Text("清籁")
                     .font(.system(size: 28, weight: .bold, design: .rounded))
-                    .foregroundStyle(Theme.textPrimary(.light))
+                    .foregroundStyle(Theme.textPrimary(colorScheme))
                 Text("聆听自然 · 疗愈心灵")
                     .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(Theme.textTertiary(.light))
+                    .foregroundStyle(Theme.textTertiary(colorScheme))
             }
             Spacer()
             Button {
@@ -52,9 +54,9 @@ struct ScenesPage: View {
             } label: {
                 Image(systemName: "gearshape")
                     .font(.system(size: 16, weight: .medium))
-                    .foregroundStyle(Theme.iconDefault(.light))
+                    .foregroundStyle(Theme.iconDefault(colorScheme))
                     .frame(width: 36, height: 36)
-                    .background(Circle().fill(Theme.inactiveFill(.light)))
+                    .background(Circle().fill(Theme.inactiveFill(colorScheme)))
             }
             .buttonStyle(.plain)
         }
@@ -66,7 +68,7 @@ struct ScenesPage: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("精选场景")
                 .font(.system(size: 18, weight: .bold))
-                .foregroundStyle(Theme.textPrimary(.light))
+                .foregroundStyle(Theme.textPrimary(colorScheme))
                 .padding(.horizontal, 20)
 
             ScrollView(.horizontal, showsIndicators: false) {
@@ -85,12 +87,12 @@ struct ScenesPage: View {
         VStack(alignment: .leading, spacing: 14) {
             Text("更多场景")
                 .font(.system(size: 18, weight: .bold))
-                .foregroundStyle(Theme.textPrimary(.light))
+                .foregroundStyle(Theme.textPrimary(colorScheme))
                 .padding(.horizontal, 20)
 
             tagFilterRow
 
-            LazyVGrid(columns: [GridItem(.adaptive(minimum: 160), spacing: 12)], spacing: 12) {
+            LazyVGrid(columns: [GridItem(.adaptive(minimum: sizeClass == .regular ? 200 : 160), spacing: sizeClass == .regular ? 16 : 12)], spacing: sizeClass == .regular ? 16 : 12) {
                 ForEach(filteredPresets) { preset in
                     SceneCard(preset: preset) { applyPreset(preset) }
                 }
@@ -125,9 +127,9 @@ struct ScenesPage: View {
             .padding(.vertical, 8)
             .background(
                 Capsule()
-                    .fill(isSelected ? Theme.accent : Theme.inactiveFill(.light))
+                    .fill(isSelected ? Theme.accent : Theme.inactiveFill(colorScheme))
             )
-            .foregroundStyle(isSelected ? Color.white : Theme.textSecondary(.light))
+            .foregroundStyle(isSelected ? Color.white : Theme.textSecondary(colorScheme))
         }
         .buttonStyle(.plain)
     }

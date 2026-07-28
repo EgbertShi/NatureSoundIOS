@@ -8,15 +8,18 @@
 import SwiftUI
 
 struct ContentView: View {
-    @State private var audioManager = AudioManager()
-    @State private var timerManager = TimerManager()
-    @State private var sceneManager = SceneManager()
-    @State private var weatherService = WeatherService()
-    @State private var videoManager = VideoManager()
+    let audioManager: AudioManager
+    let timerManager: TimerManager
+    let sceneManager: SceneManager
+    let weatherService: WeatherService
+    let videoManager: VideoManager
+
     @State private var selectedTab = 0
     @State private var showStandby = false
     @State private var showSettings = false
     @Environment(\.scenePhase) private var scenePhase
+    @Environment(\.colorScheme) private var colorScheme
+    @Environment(\.horizontalSizeClass) private var sizeClass
 
     var body: some View {
         ZStack(alignment: .bottom) {
@@ -37,7 +40,7 @@ struct ContentView: View {
                     videoManager: videoManager,
                     showSettings: $showSettings
                 )
-                .background(Theme.backgroundGradient(.light).ignoresSafeArea())
+                .background(Theme.backgroundGradient(colorScheme).ignoresSafeArea())
                 .tabItem { Label("场景", systemImage: "square.stack.3d.up.fill") }
                 .tag(1)
 
@@ -46,7 +49,7 @@ struct ContentView: View {
                     sceneManager: sceneManager,
                     showSettings: $showSettings
                 )
-                .background(Theme.backgroundGradient(.light).ignoresSafeArea())
+                .background(Theme.backgroundGradient(colorScheme).ignoresSafeArea())
                 .tabItem { Label("我的", systemImage: "star.fill") }
                 .tag(2)
             }
@@ -58,6 +61,7 @@ struct ContentView: View {
                         Haptics.light()
                         showStandby = true
                     }
+                    .frame(maxWidth: sizeClass == .regular ? 520 : .infinity)
                     .padding(.horizontal, 12)
                     .padding(.bottom, 54)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -68,7 +72,6 @@ struct ContentView: View {
         // 这里不再叠加隐式的 .animation(value:)。此前双重动画声明（顶层隐式动画 +
         // 触发点显式 withAnimation 同时作用于 activeCount）在耗时的音频加载操作
         // 与动画事务提交产生时序竞态时，会偶发导致 MiniPlayerBar 该出现却未正确显示。
-        .preferredColorScheme(.light)
         .onAppear { weatherService.fetchWeatherIfNeeded() }
         .fullScreenCover(isPresented: $showStandby) {
             StandbyView(audioManager: audioManager, timerManager: timerManager, sceneManager: sceneManager, videoManager: videoManager, isPresented: $showStandby)
@@ -95,5 +98,11 @@ struct ContentView: View {
 }
 
 #Preview {
-    ContentView()
+    ContentView(
+        audioManager: AudioManager(),
+        timerManager: TimerManager(),
+        sceneManager: SceneManager(),
+        weatherService: WeatherService(),
+        videoManager: VideoManager()
+    )
 }
