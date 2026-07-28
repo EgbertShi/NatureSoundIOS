@@ -103,7 +103,7 @@ struct SettingsPage: View {
         VStack(alignment: .leading, spacing: 12) {
             sectionHeader("关于")
             VStack(spacing: 0) {
-                settingRow(icon: "info.circle.fill", iconColor: Theme.iconDefault(.light), title: "版本", trailing: "1.0.0")
+                settingRow(icon: "info.circle.fill", iconColor: Theme.iconDefault(.light), title: "版本", trailing: "1.1")
                 Divider().background(Theme.separator(.light)).padding(.horizontal, 14)
                 settingRow(icon: "waveform.circle.fill", iconColor: Theme.iconDefault(.light), title: "声音库", trailing: "\(SoundItem.allSounds.count) 种声音")
                 Divider().background(Theme.separator(.light)).padding(.horizontal, 14)
