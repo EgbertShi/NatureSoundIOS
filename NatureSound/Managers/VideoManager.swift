@@ -310,24 +310,29 @@ final class VideoManager {
         return dir
     }
 
-    // MARK: - Now Playing 封面图片
+    // MARK: - Now Playing 封面（静态图 + 动态视频）
+    //
+    // iOS 26+ 支持 MPMediaItemAnimatedArtwork，可在锁屏"正在播放"界面展示循环视频背景。
+    // 策略：优先提供已缓存的视频 URL（动态封面）+ 缩略图（预览图），兜底使用纯静态缩略图。
 
-    /// 获取指定场景的高分辨率缩略图用于锁屏 Now Playing 封面。
-    /// 优先从内存缓存获取，其次从磁盘缓存加载。
-    /// 返回的图片将作为 MPMediaItemArtwork 展示在锁屏界面。
+    /// 获取指定场景的静态封面图（用于 MPMediaItemArtwork 和动态封面的预览图）。
     func nowPlayingArtwork(for sceneID: String, variantIndex: Int = 0) -> UIImage? {
         return cachedThumbnailImage(for: sceneID, variantIndex: variantIndex)
     }
 
     /// 异步获取场景封面图：先尝试本地缓存，缓存未命中则从远程下载后返回。
     func fetchNowPlayingArtwork(for sceneID: String, variantIndex: Int = 0) async -> UIImage? {
-        // 先看本地缓存
         if let image = cachedThumbnailImage(for: sceneID, variantIndex: variantIndex) {
             return image
         }
-        // 下载缩略图并缓存
         await cacheThumbnail(for: sceneID, variantIndex: variantIndex)
         return cachedThumbnailImage(for: sceneID, variantIndex: variantIndex)
+    }
+
+    /// 获取指定场景已缓存的视频文件 URL，用于锁屏动态封面（MPMediaItemAnimatedArtwork）。
+    /// 仅返回已落盘的本地视频，不触发远程下载。
+    func nowPlayingVideoURL(for sceneID: String, variantIndex: Int = 0) -> URL? {
+        return cachedVideoURL(for: sceneID, variantIndex: variantIndex)
     }
 
     // MARK: - 清理

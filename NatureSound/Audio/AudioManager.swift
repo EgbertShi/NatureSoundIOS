@@ -8,6 +8,7 @@
 import AVFoundation
 import SwiftUI
 import MediaPlayer
+import os
 
 // MARK: - 空间音频模式
 enum SpatialMode: String, CaseIterable, Identifiable {
@@ -79,6 +80,8 @@ final class AudioManager {
 
     /// Now Playing 封面图片（锁屏展示用）
     private var nowPlayingArtwork: UIImage?
+    /// Now Playing 动态封面视频 URL（锁屏视频背景用，iOS 26+）
+    private var nowPlayingVideoURL: URL?
 
     init() {
         if let raw = UserDefaults.standard.string(forKey: Self.spatialModeKey),
@@ -147,6 +150,7 @@ final class AudioManager {
         currentSceneID = nil
         currentSceneName = nil
         nowPlayingArtwork = nil
+        nowPlayingVideoURL = nil
         stopSurroundMotion()
         updateNowPlayingInfo()
     }
@@ -328,10 +332,16 @@ final class AudioManager {
 
     /// 设置当前场景信息，用于锁屏 Now Playing 封面展示。
     /// 传入 nil 可清除场景封面。
-    func setCurrentScene(id: String?, name: String?, artwork: UIImage?) {
+    /// - Parameters:
+    ///   - id: 场景 ID
+    ///   - name: 场景名称
+    ///   - artwork: 静态封面图（用于 Now Playing 控件和动态封面加载前的预览图）
+    ///   - videoURL: 场景视频本地 URL（用于 iOS 26+ 锁屏动态视频背景）
+    func setCurrentScene(id: String?, name: String?, artwork: UIImage?, videoURL: URL? = nil) {
         currentSceneID = id
         currentSceneName = name
         nowPlayingArtwork = artwork
+        nowPlayingVideoURL = videoURL
         updateNowPlayingInfo()
     }
 
@@ -370,8 +380,213 @@ final class AudioManager {
             info[MPMediaItemPropertyArtwork] = mpArtwork
         }
 
+        // iOS 26+ 锁屏动态视频封面（MPMediaItemAnimatedArtwork）
+        // 当场景有已缓存的视频时，在锁屏"正在播放"界面展示循环视频背景
+        setAnimatedArtwork(info: &info)
+
         MPNowPlayingInfoCenter.default().nowPlayingInfo = info
         #endif
+    }
+
+    /// 设置锁屏动态视频封面（iOS 26+）。
+    /// 通过 MPNowPlayingInfoCenter.supportedAnimatedArtworkKeys 获取系统支持的动态封面 key，
+    /// 为每个 key 创建 MPMediaItemAnimatedArtwork 对象，提供视频文件 URL 和静态预览图。
+    ///
+    /// 重要：系统要求视频和预览图的宽高比必须匹配对应的 key（3x4 → 3:4 竖屏比例）。
+    /// 因此需要将横屏视频裁剪为竖屏比例后再提供给系统。
+    private func setAnimatedArtwork(info: inout [String: Any]) {
+        #if os(iOS)
+        guard let videoURL = nowPlayingVideoURL else {
+            AppLogger.audio.debug("动态封面: 无视频 URL，跳过")
+            return
+        }
+        let previewImage = nowPlayingArtwork
+
+        // 获取系统支持的动态封面属性 key
+        let supportedKeys = MPNowPlayingInfoCenter.supportedAnimatedArtworkKeys
+        AppLogger.audio.info("动态封面: 视频 URL = \(videoURL.lastPathComponent, privacy: .public), supportedKeys = \(supportedKeys, privacy: .public)")
+        guard !supportedKeys.isEmpty else {
+            AppLogger.audio.info("动态封面: 系统不支持动态封面 key，跳过")
+            return
+        }
+
+        // 用场景 ID 作为 artworkID，确保同一场景的封面可被系统缓存复用
+        let artworkID = currentSceneID ?? UUID().uuidString
+
+        for key in supportedKeys {
+            // 根据 key 确定目标宽高比
+            let targetAspectRatio: CGFloat = key.contains("1x1") ? 1.0 : 3.0 / 4.0
+
+            let localVideoURL = videoURL
+            let localPreviewImage = previewImage
+            let localArtworkID = artworkID
+
+            let animatedArtwork = MPMediaItemAnimatedArtwork(
+                artworkID: localArtworkID,
+                previewImageRequestHandler: { size in
+                    AppLogger.audio.debug("动态封面: 系统请求预览图，size = \(size.debugDescription, privacy: .public)")
+                    // 将预览图裁剪为目标宽高比
+                    if let image = localPreviewImage {
+                        return Self.cropImageToAspectRatio(image, targetRatio: targetAspectRatio)
+                    }
+                    return nil
+                },
+                videoAssetFileURLRequestHandler: { size in
+                    AppLogger.audio.info("动态封面: 系统请求视频文件，size = \(size.debugDescription, privacy: .public), 源视频 = \(localVideoURL.lastPathComponent, privacy: .public)")
+                    // 将视频裁剪为目标宽高比后返回本地文件 URL
+                    do {
+                        let croppedURL = try await Self.cropVideoToAspectRatio(
+                            sourceURL: localVideoURL,
+                            targetRatio: targetAspectRatio,
+                            artworkID: localArtworkID,
+                            keySuffix: key.contains("1x1") ? "1x1" : "3x4"
+                        )
+                        AppLogger.audio.info("动态封面: 裁剪视频完成 → \(croppedURL.lastPathComponent, privacy: .public)")
+                        return croppedURL
+                    } catch {
+                        AppLogger.audio.error("动态封面: 裁剪视频失败: \(error.localizedDescription, privacy: .public)")
+                        return nil
+                    }
+                }
+            )
+            info[key] = animatedArtwork
+            AppLogger.audio.info("动态封面: 已设置 key = \(key, privacy: .public)")
+        }
+        #endif
+    }
+
+    // MARK: - 动态封面裁剪工具
+
+    /// 将图片从中心裁剪为指定宽高比（targetRatio = width / height）。
+    private static func cropImageToAspectRatio(_ image: UIImage, targetRatio: CGFloat) -> UIImage {
+        let originalSize = image.size
+        let originalRatio = originalSize.width / originalSize.height
+
+        // 已经匹配则直接返回
+        if abs(originalRatio - targetRatio) < 0.05 { return image }
+
+        var cropRect: CGRect
+        if originalRatio > targetRatio {
+            // 原图更宽，裁剪左右
+            let newWidth = originalSize.height * targetRatio
+            let xOffset = (originalSize.width - newWidth) / 2
+            cropRect = CGRect(x: xOffset, y: 0, width: newWidth, height: originalSize.height)
+        } else {
+            // 原图更高，裁剪上下
+            let newHeight = originalSize.width / targetRatio
+            let yOffset = (originalSize.height - newHeight) / 2
+            cropRect = CGRect(x: 0, y: yOffset, width: originalSize.width, height: newHeight)
+        }
+
+        // 转换为像素坐标
+        let scale = image.scale
+        let pixelRect = CGRect(
+            x: cropRect.origin.x * scale,
+            y: cropRect.origin.y * scale,
+            width: cropRect.width * scale,
+            height: cropRect.height * scale
+        )
+
+        guard let cgImage = image.cgImage?.cropping(to: pixelRect) else { return image }
+        return UIImage(cgImage: cgImage, scale: scale, orientation: image.imageOrientation)
+    }
+
+    /// 将视频从中心裁剪为指定宽高比（targetRatio = width / height），导出到缓存目录。
+    /// 已裁剪的视频会缓存在本地，相同 artworkID + keySuffix 不会重复裁剪。
+    private static func cropVideoToAspectRatio(
+        sourceURL: URL,
+        targetRatio: CGFloat,
+        artworkID: String,
+        keySuffix: String
+    ) async throws -> URL {
+        // 缓存目录
+        let cacheDir = FileManager.default.urls(for: .cachesDirectory, in: .userDomainMask)[0]
+            .appendingPathComponent("AnimatedArtwork", isDirectory: true)
+        if !FileManager.default.fileExists(atPath: cacheDir.path) {
+            try FileManager.default.createDirectory(at: cacheDir, withIntermediateDirectories: true)
+        }
+
+        // 缓存文件名：artworkID_keySuffix.mp4
+        let safeID = artworkID.replacingOccurrences(of: "/", with: "_")
+        let outputURL = cacheDir.appendingPathComponent("\(safeID)_\(keySuffix).mp4")
+
+        // 已有缓存直接返回
+        if FileManager.default.fileExists(atPath: outputURL.path) {
+            AppLogger.audio.debug("动态封面: 使用缓存裁剪视频 \(outputURL.lastPathComponent, privacy: .public)")
+            return outputURL
+        }
+
+        let asset = AVAsset(url: sourceURL)
+
+        // 获取视频轨道的原始尺寸
+        guard let videoTrack = try await asset.loadTracks(withMediaType: .video).first else {
+            throw NSError(domain: "AnimatedArtwork", code: -1, userInfo: [NSLocalizedDescriptionKey: "无视频轨道"])
+        }
+        let naturalSize = try await videoTrack.load(.naturalSize)
+        let transform = try await videoTrack.load(.preferredTransform)
+        // 考虑 transform 后的实际尺寸
+        let transformedSize = naturalSize.applying(transform)
+        let videoWidth = abs(transformedSize.width)
+        let videoHeight = abs(transformedSize.height)
+        let videoRatio = videoWidth / videoHeight
+
+        AppLogger.audio.info("动态封面: 源视频尺寸 \(Int(videoWidth))×\(Int(videoHeight))，比例 \(String(format: "%.2f", videoRatio), privacy: .public)，目标比例 \(String(format: "%.2f", targetRatio), privacy: .public)")
+
+        // 如果已经匹配目标比例，直接返回原视频
+        if abs(videoRatio - targetRatio) < 0.05 {
+            return sourceURL
+        }
+
+        // 计算裁剪区域（基于原始 naturalSize 坐标系）
+        var cropRect: CGRect
+        if videoRatio > targetRatio {
+            // 视频更宽，裁剪左右（取中间部分）
+            let newWidth = videoHeight * targetRatio
+            let xOffset = (videoWidth - newWidth) / 2
+            cropRect = CGRect(x: xOffset, y: 0, width: newWidth, height: videoHeight)
+        } else {
+            // 视频更高，裁剪上下
+            let newHeight = videoWidth / targetRatio
+            let yOffset = (videoHeight - newHeight) / 2
+            cropRect = CGRect(x: 0, y: yOffset, width: videoWidth, height: newHeight)
+        }
+
+        let renderWidth = cropRect.width
+        let renderHeight = cropRect.height
+
+        // 构建 AVMutableVideoComposition 进行裁剪
+        let composition = AVMutableVideoComposition()
+        composition.frameDuration = CMTime(value: 1, timescale: 30)
+        composition.renderSize = CGSize(width: renderWidth, height: renderHeight)
+
+        let instruction = AVMutableVideoCompositionInstruction()
+        instruction.timeRange = CMTimeRange(start: .zero, duration: try await asset.load(.duration))
+
+        let layerInstruction = AVMutableVideoCompositionLayerInstruction(assetTrack: videoTrack)
+        // 平移使裁剪区域居中
+        let cropTransform = transform.concatenating(CGAffineTransform(translationX: -cropRect.origin.x, y: -cropRect.origin.y))
+        layerInstruction.setTransform(cropTransform, at: .zero)
+        instruction.layerInstructions = [layerInstruction]
+        composition.instructions = [instruction]
+
+        // 导出
+        guard let exportSession = AVAssetExportSession(asset: asset, presetName: AVAssetExportPresetHighestQuality) else {
+            throw NSError(domain: "AnimatedArtwork", code: -2, userInfo: [NSLocalizedDescriptionKey: "无法创建导出会话"])
+        }
+        // 清除旧文件
+        try? FileManager.default.removeItem(at: outputURL)
+        exportSession.outputURL = outputURL
+        exportSession.outputFileType = .mp4
+        exportSession.videoComposition = composition
+
+        await exportSession.export()
+
+        if exportSession.status == .completed {
+            return outputURL
+        } else {
+            let errorMsg = exportSession.error?.localizedDescription ?? "未知错误"
+            throw NSError(domain: "AnimatedArtwork", code: -3, userInfo: [NSLocalizedDescriptionKey: "导出失败: \(errorMsg)"])
+        }
     }
 
     // MARK: - 通知与远程控制

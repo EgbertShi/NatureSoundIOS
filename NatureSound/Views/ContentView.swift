@@ -90,6 +90,15 @@ struct ContentView: View {
         .onChange(of: timerManager.fadeOutProgress) { _, progress in
             audioManager.applyFadeOut(progress: progress)
         }
+        .onChange(of: timerManager.isActive) { oldValue, newValue in
+            // 定时器从活跃变为非活跃 → 定时结束，统一处理停止播放和退出待机
+            if oldValue && !newValue {
+                withAnimation(.spring(response: 0.4)) {
+                    audioManager.stopAll()
+                }
+                showStandby = false
+            }
+        }
         .sheet(isPresented: $showSettings) {
             SettingsPage(audioManager: audioManager, sceneManager: sceneManager, isPresented: $showSettings)
                 .presentationDetents([.medium])

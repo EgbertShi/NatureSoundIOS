@@ -471,13 +471,15 @@ struct StandbyView: View {
     private func updateNowPlayingScene() {
         guard let scene = selectedScene else { return }
         let artwork = videoManager.nowPlayingArtwork(for: scene.id, variantIndex: selectedVideoVariant)
-        audioManager.setCurrentScene(id: scene.id, name: scene.name, artwork: artwork)
+        let videoURL = videoManager.nowPlayingVideoURL(for: scene.id, variantIndex: selectedVideoVariant)
+        audioManager.setCurrentScene(id: scene.id, name: scene.name, artwork: artwork, videoURL: videoURL)
         // 如果本地没有缩略图缓存，异步下载后更新
         if artwork == nil {
             Task {
                 if let image = await videoManager.fetchNowPlayingArtwork(for: scene.id, variantIndex: selectedVideoVariant) {
                     await MainActor.run {
-                        audioManager.setCurrentScene(id: scene.id, name: scene.name, artwork: image)
+                        let latestVideoURL = videoManager.nowPlayingVideoURL(for: scene.id, variantIndex: selectedVideoVariant)
+                        audioManager.setCurrentScene(id: scene.id, name: scene.name, artwork: image, videoURL: latestVideoURL)
                     }
                 }
             }

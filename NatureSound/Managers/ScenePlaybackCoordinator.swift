@@ -53,12 +53,15 @@ struct ScenePlaybackCoordinator {
         }
 
         let artwork = videoManager.nowPlayingArtwork(for: scene.id)
-        audioManager.setCurrentScene(id: scene.id, name: scene.name, artwork: artwork)
+        let videoURL = videoManager.nowPlayingVideoURL(for: scene.id)
+        audioManager.setCurrentScene(id: scene.id, name: scene.name, artwork: artwork, videoURL: videoURL)
 
+        // 缩略图未缓存时异步下载后更新
         guard artwork == nil else { return }
         Task {
             guard let image = await videoManager.fetchNowPlayingArtwork(for: scene.id) else { return }
-            audioManager.setCurrentScene(id: scene.id, name: scene.name, artwork: image)
+            let latestVideoURL = videoManager.nowPlayingVideoURL(for: scene.id)
+            audioManager.setCurrentScene(id: scene.id, name: scene.name, artwork: image, videoURL: latestVideoURL)
         }
     }
 }

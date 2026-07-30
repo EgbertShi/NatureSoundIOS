@@ -5,6 +5,7 @@
 //  Created by egbert on 2026/7/24.
 //
 
+#if os(iOS) && !targetEnvironment(macCatalyst)
 import ActivityKit
 import Foundation
 import os
@@ -92,3 +93,20 @@ final class LiveActivityManager {
         currentActivity = nil
     }
 }
+
+#else
+
+import Foundation
+
+// MARK: - Live Activity 管理器 (Mac Catalyst 占位)
+
+@Observable
+final class LiveActivityManager {
+    var isSupported: Bool { false }
+
+    func startActivity(totalMinutes: Int, remainingSeconds: Int, soundNames: [String]) {}
+    func updateActivity(remainingSeconds: Int, totalSeconds: Int, soundNames: [String]) {}
+    func endActivity() {}
+}
+
+#endif
