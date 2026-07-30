@@ -9,19 +9,21 @@ import SwiftUI
 
 // MARK: - 场景标签
 enum SceneTag: String, CaseIterable, Identifiable, Decodable {
-    case sleep    = "助眠"
-    case focus    = "专注"
-    case relax    = "放松"
-    case nature   = "自然"
+    case sleep      = "助眠"
+    case focus      = "专注"
+    case relax      = "放松"
+    case nature     = "自然"
+    case meditation = "冥想"
 
     var id: String { rawValue }
 
     var icon: String {
         switch self {
-        case .focus:  return "brain.head.profile.fill"
-        case .relax:  return "leaf.fill"
-        case .sleep:  return "moon.stars.fill"
-        case .nature: return "mountain.2.fill"
+        case .focus:      return "brain.head.profile.fill"
+        case .relax:      return "leaf.fill"
+        case .sleep:      return "moon.stars.fill"
+        case .nature:     return "mountain.2.fill"
+        case .meditation: return "figure.mind.and.body"
         }
     }
 }

@@ -61,6 +61,8 @@ struct SoundsPage: View {
     let weatherService: WeatherService
     let videoManager: VideoManager
     @Binding var showSettings: Bool
+    /// 模式入口回调（入睡/专注/放松/冥想）
+    let onSelectMode: (FocusMode) -> Void
     @Environment(\.colorScheme) private var colorScheme
     @Environment(\.horizontalSizeClass) private var sizeClass
 
@@ -93,7 +95,8 @@ struct SoundsPage: View {
                     onPlaySound: { sound in
                         playRecommendedSound(sound)
                     },
-                    cardHeight: sizeClass == .regular ? 420 : 360
+                    onSelectMode: onSelectMode,
+                    cardHeight: sizeClass == .regular ? 460 : 400
                 )
 
                 CategoryTabView(selectedCategory: $selectedCategory)

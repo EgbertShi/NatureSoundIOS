@@ -22,8 +22,10 @@ struct AmbianceCard: View {
     let onPlayScene: (ScenePreset) -> Void
     /// 播放指定单个声音
     let onPlaySound: (SoundItem) -> Void
+    /// 选择模式入口（入睡/专注/放松/冥想）
+    let onSelectMode: (FocusMode) -> Void
     /// 卡片高度（外部根据 iPhone/iPad 传入）
-    var cardHeight: CGFloat = 360
+    var cardHeight: CGFloat = 400
 
     // MARK: - 与 StandbyView 共享的沉浸模式选择（@AppStorage）
     // 确保首页卡片视频与沉浸模式场景视频使用同一场景、同一变体，保持两端同步。
@@ -44,12 +46,6 @@ struct AmbianceCard: View {
 
     /// 根据当前时段和天气选取的背景图片名称（稳定值，视图存续期间不随机变化）
     @State private var currentImageName = DayPeriod.current().ambianceImageName(weather: nil)
-
-    /// 仅在当前没有播放内容时展示，让回访用户可以一键恢复完整场景。
-    private var lastPreset: ScenePreset? {
-        guard audioManager.activeCount == 0 else { return nil }
-        return ScenePlaybackCoordinator.lastPreset
-    }
 
     /// 当前播放声音匹配到的预设场景（仅当场景有视频/缩略图资源时返回）
     /// 优先使用 AudioManager 记录的当前场景（由场景页 applyPreset 或推荐播放设置），
@@ -92,31 +88,22 @@ struct AmbianceCard: View {
                         .padding(.horizontal, 20)
                         .padding(.top, 14)
 
-                    VStack(alignment: .leading, spacing: 6) {
-                        Text(period.greeting(weather: weather))
-                            .font(.system(size: 26, weight: .bold))
-                            .contentTransition(.numericText())
-                        Text(period.subtitle(weather: weather))
-                            .font(.system(size: 14))
-                            .foregroundStyle(Color.white.opacity(0.75))
-                            .contentTransition(.numericText())
-                    }
-                    .foregroundStyle(Color.white)
-                    .padding(.horizontal, 20)
-                    .padding(.top, 10)
+                    Text(period.greeting(weather: weather))
+                        .font(.system(size: 18, weight: .bold))
+                        .foregroundStyle(Color.white)
+                        .contentTransition(.numericText())
+                        .padding(.horizontal, 20)
+                        .padding(.top, 10)
 
-                    // 回访用户优先看到完整恢复入口；首次使用或无历史时展示今日推荐。
-                    if let lastPreset {
-                        resumeLastSceneRow(lastPreset)
-                            .padding(.horizontal, 20)
-                            .padding(.top, 16)
-                            .padding(.bottom, 22)
-                    } else {
-                        recommendationRow
-                            .padding(.horizontal, 20)
-                            .padding(.top, 16)
-                            .padding(.bottom, 22)
-                    }
+                    // MARK: 今日推荐
+                    recommendationRow
+                        .padding(.horizontal, 20)
+                        .padding(.top, 16)
+
+                    // MARK: 模式入口（仅非沉浸模式下展示）
+                    modeEntryRow
+                        .padding(.top, 14)
+                        .padding(.bottom, 18)
                 }
             }
         }
@@ -141,47 +128,7 @@ struct AmbianceCard: View {
         currentImageName = period.ambianceImageName(weather: weather)
     }
 
-    // MARK: - 继续上次 / 今日推荐
-
-    private func resumeLastSceneRow(_ preset: ScenePreset) -> some View {
-        Button {
-            Haptics.medium()
-            onPlayScene(preset)
-        } label: {
-            HStack(spacing: 12) {
-                ZStack {
-                    Circle()
-                        .fill(Color.white.opacity(0.2))
-                        .frame(width: 38, height: 38)
-                    Image(systemName: "arrow.counterclockwise")
-                        .font(.system(size: 16, weight: .semibold))
-                        .foregroundStyle(.white)
-                }
-
-                VStack(alignment: .leading, spacing: 5) {
-                    Text("继续上次")
-                        .font(.system(size: 10, weight: .semibold))
-                        .foregroundStyle(Color(hex: "FFD54F"))
-                    Text(preset.name)
-                        .font(.system(size: 14, weight: .bold))
-                        .foregroundStyle(.white)
-                }
-
-                Spacer()
-
-                Text("恢复播放")
-                    .font(.system(size: 13, weight: .semibold))
-                    .foregroundStyle(.white)
-                    .padding(.horizontal, 14)
-                    .padding(.vertical, 8)
-                    .background(Capsule().fill(Color.white.opacity(0.2)))
-                    .overlay(Capsule().stroke(Color.white.opacity(0.3), lineWidth: 1))
-            }
-        }
-        .buttonStyle(.plain)
-        .accessibilityLabel("继续上次播放：\(preset.name)")
-        .accessibilityHint("双击后恢复该场景的声音与音量")
-    }
+    // MARK: - 今日推荐
 
     @ViewBuilder
     private var recommendationRow: some View {
@@ -384,9 +331,12 @@ struct AmbianceCard: View {
         .padding(.top, 14)
 
         VStack(alignment: .leading, spacing: 6) {
-            Text(scene.name)
-                .font(.system(size: 26, weight: .bold))
-                .contentTransition(.numericText())
+            HStack(alignment: .center, spacing: 10) {
+                Text(scene.name)
+                    .font(.system(size: 26, weight: .bold))
+                    .contentTransition(.numericText())
+                soundIconStack(soundIDs: scene.soundIDs, maxIcons: 5, iconSize: 20)
+            }
             Text(scene.description)
                 .font(.system(size: 14))
                 .foregroundStyle(Color.white.opacity(0.75))
@@ -395,13 +345,6 @@ struct AmbianceCard: View {
         .foregroundStyle(Color.white)
         .padding(.horizontal, 20)
         .padding(.top, 10)
-
-        HStack {
-            soundIconStack(soundIDs: scene.soundIDs, maxIcons: 7, iconSize: 24)
-            Spacer()
-        }
-        .padding(.horizontal, 20)
-        .padding(.top, 16)
         .padding(.bottom, 22)
     }
 
@@ -470,13 +413,6 @@ struct AmbianceCard: View {
                             .foregroundStyle(Color.white)
                             .padding(.leading, 6)
                     }
-
-                    Text("·")
-                        .foregroundStyle(Color.white.opacity(0.5))
-                        .padding(.horizontal, 6)
-                    Text(weather.feelsDescription)
-                        .font(.system(size: 12, weight: .regular))
-                        .foregroundStyle(Color.white.opacity(0.7))
                 }
                 .padding(.horizontal, 12)
                 .padding(.vertical, 6)
@@ -508,8 +444,8 @@ struct AmbianceCard: View {
                     Text("正在播放：\(scene.name)")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(Color.white.opacity(0.7))
-                } else {
-                    Text(audioManager.activeCount > 0 ? "正在播放 \(audioManager.activeCount) 种声音" : "点击声音卡片开始聆听")
+                } else if audioManager.activeCount > 0 {
+                    Text("正在播放 \(audioManager.activeCount) 种声音")
                         .font(.system(size: 12, weight: .medium))
                         .foregroundStyle(Color.white.opacity(0.7))
                 }
@@ -561,6 +497,63 @@ struct AmbianceCard: View {
         case .afternoon: return "午后"
         case .evening:   return "傍晚"
         case .night:     return "夜晚"
+        }
+    }
+
+    // MARK: - 模式入口卡片
+
+    private var modeEntryRow: some View {
+        ScrollView(.horizontal, showsIndicators: false) {
+            HStack(spacing: 10) {
+                ForEach(FocusMode.allCases) { mode in
+                    Button {
+                        Haptics.light()
+                        onSelectMode(mode)
+                    } label: {
+                        VStack(spacing: 6) {
+                            // 图标
+                            ZStack {
+                                Circle()
+                                    .fill(.white.opacity(0.2))
+                                    .frame(width: 32, height: 32)
+                                Image(systemName: mode.icon)
+                                    .font(.system(size: 14, weight: .semibold))
+                                    .foregroundStyle(.white)
+                            }
+
+                            // 名称 + 描述
+                            VStack(spacing: 2) {
+                                Text(mode.displayName)
+                                    .font(.system(size: 13, weight: .bold))
+                                    .foregroundStyle(.white)
+                                Text(mode.subtitle)
+                                    .font(.system(size: 10))
+                                    .foregroundStyle(.white.opacity(0.7))
+                                    .lineLimit(1)
+                            }
+                        }
+                        .frame(width: 80)
+                        .padding(.horizontal, 8)
+                        .padding(.vertical, 10)
+                        .background(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .fill(
+                                    LinearGradient(
+                                        colors: [mode.themeColor.opacity(0.65), mode.themeColor.opacity(0.35)],
+                                        startPoint: .topLeading,
+                                        endPoint: .bottomTrailing
+                                    )
+                                )
+                        )
+                        .overlay(
+                            RoundedRectangle(cornerRadius: 14, style: .continuous)
+                                .stroke(.white.opacity(0.15), lineWidth: 0.5)
+                        )
+                    }
+                    .buttonStyle(.plain)
+                }
+            }
+            .padding(.horizontal, 20)
         }
     }
 }

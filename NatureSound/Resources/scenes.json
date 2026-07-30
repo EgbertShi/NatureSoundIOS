@@ -27,7 +27,7 @@
       "colorHex": "66BB6A",
       "soundIDs": ["stream", "forest_wind", "songbird", "dry_leaves"],
       "volumes": {"stream": 0.7, "forest_wind": 0.45, "songbird": 0.3, "dry_leaves": 0.15},
-      "tags": ["放松", "自然"]
+      "tags": ["冥想", "放松"]
     },
     {
       "id": "ocean_night",
@@ -47,7 +47,7 @@
       "colorHex": "FFC107",
       "soundIDs": ["temple_bell", "zen_bell", "gong"],
       "volumes": {"zen_bell": 0.55, "temple_bell": 0.4, "gong": 0.3},
-      "tags": ["放松", "专注"]
+      "tags": ["冥想", "放松"]
     },
     {
       "id": "campfire_night",
@@ -137,7 +137,7 @@
       "colorHex": "0097A7",
       "soundIDs": ["waterfall", "gong", "forest_wind"],
       "volumes": {"waterfall": 0.7, "gong": 0.3, "forest_wind": 0.2},
-      "tags": ["放松", "自然"]
+      "tags": ["冥想", "自然"]
     },
     {
       "id": "rainy_cafe",
@@ -167,7 +167,7 @@
       "colorHex": "FFB300",
       "soundIDs": ["tibetan_chant", "gong", "temple_bell"],
       "volumes": {"tibetan_chant": 0.7, "gong": 0.35, "temple_bell": 0.25},
-      "tags": ["放松", "专注"]
+      "tags": ["冥想", "放松"]
     },
     {
       "id": "rural_summer",
